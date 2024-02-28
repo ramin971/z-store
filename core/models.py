@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import MaxValueValidator,MinValueValidator
-
-
+from django.contrib.auth.models import User
+# ---------------Category--------------------------------------------------------------------------------
 class Category(models.Model):
     name = models.CharField(max_length=50,unique=True)
     slug = models.SlugField(unique=True)
@@ -13,7 +13,7 @@ class Category(models.Model):
         ]
 
     def __str__(self) -> str:
-        return f'{self.slug}'
+        return f'{self.name}'
     # def __str__(self):
     #     fullpath = [self.slug]
     #     parent = self.parent
@@ -23,7 +23,7 @@ class Category(models.Model):
     #     return '/'.join(fullpath[::-1])
 
 
-
+# ---------------Product(related)--------------------------------------------------------------------------------
 class Tag(models.Model):
     value = models.CharField(max_length=30,unique=True)
 
@@ -32,14 +32,10 @@ class Description(models.Model):
     text = models.TextField()
 
 
-
 class Size(models.Model):
     value = models.CharField(max_length=20,unique=True)
 
-
-
-
-
+# ---------------Product--------------------------------------------------------------------------------
 class Product(models.Model):
     name = models.CharField(max_lengh=100,unique=True)
     slug = models.SlugField()
@@ -47,7 +43,11 @@ class Product(models.Model):
     description = models.OneToOneField(Description,one_delete=models.SET_NULL,null=True,blank=True)
     sizes = models.ManyToManyField(Size,related_name='products')
     tags = models.ManyToManyField(Tag,related_name='products')
-    pass
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    
+    def __str__(self) -> str:
+        return f'{self.name}'
 
 class ProductImage(models.Model):
     image = models.ImageField(upload_to='image')
@@ -56,11 +56,17 @@ class ProductImage(models.Model):
     def __str__(self) -> str:
         return f'{self.product}'
     
-
+class Rating(models.Model):
+    rate = models.PositiveSmallIntegerField(validators=[MinValueValidator(1),MaxValueValidator(5)])
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name='rates')
+    
+# ---------------Comment--------------------------------------------------------------------------------
 class Comment(models.Model):
     text = models.TextField()
     user = models.ForeignKey(User,on_delete=models.CASCADE,related_name='comments')
     product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name='comments')
+    parent = models.ForeignKey('self',on_delete=models.CASCADE,null=True,blank=True,related_name='replis')
 
     class Meta:
         ordering = ['-id']
@@ -68,18 +74,22 @@ class Comment(models.Model):
     def __str__(self) -> str:
         return f'{self.product}'
 
+# class Reply(models.Model):
+#     pass
+
 class Reaction(models.Model):
-    #like
-    #dislike
-    pass
-
-class Rating(models.Model):
-    rate = models.PositiveSmallIntegerField(validators=[MinValueValidator(1),MaxValueValidator(5)])
+    FEEDBACK_OPTIONS = (('L','Like'),('D','Dislike'))
     user = models.ForeignKey(User,on_delete=models.CASCADE)
-    product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name='rates')
+    comment = models.ForeignKey(Product,on_delete=models.CASCADE)
+    feedback = models.CharField(max_length=1,choices=FEEDBACK_OPTIONS)
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=('user','comment'),name='unique_reaction')
+        ]
+  
 
-#-------------------------------------
 
+# ---------------Cart--------------------------------------------------------------------------------
 class Coupon(models.Model):
     pass
 
