@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MaxValueValidator,MinValueValidator
-from django.contrib.auth.models import User
+from django.conf import settings
+
 # ---------------Category--------------------------------------------------------------------------------
 class Category(models.Model):
     name = models.CharField(max_length=50,unique=True)
@@ -28,7 +29,7 @@ class Tag(models.Model):
     value = models.CharField(max_length=30,unique=True)
 
 class Description(models.Model):
-    video = models.FileField(upload_to='video')
+    video = models.FileField(upload_to='upload/video')
     text = models.TextField()
 
 
@@ -37,10 +38,10 @@ class Size(models.Model):
 
 # ---------------Product--------------------------------------------------------------------------------
 class Product(models.Model):
-    name = models.CharField(max_lengh=100,unique=True)
+    name = models.CharField(max_length=100,unique=True)
     slug = models.SlugField()
-    category = models.ForeignKey(Category,one_delete=models.PROTECT,related_name='products')
-    description = models.OneToOneField(Description,one_delete=models.SET_NULL,null=True,blank=True)
+    category = models.ForeignKey(Category,on_delete=models.PROTECT,related_name='products')
+    description = models.OneToOneField(Description,on_delete=models.SET_NULL,null=True,blank=True)
     sizes = models.ManyToManyField(Size,related_name='products')
     tags = models.ManyToManyField(Tag,related_name='products')
     created = models.DateTimeField(auto_now_add=True)
@@ -50,7 +51,7 @@ class Product(models.Model):
         return f'{self.name}'
 
 class ProductImage(models.Model):
-    image = models.ImageField(upload_to='image')
+    image = models.ImageField(upload_to='upload/image')
     product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name='images')
 
     def __str__(self) -> str:
@@ -58,13 +59,13 @@ class ProductImage(models.Model):
     
 class Rating(models.Model):
     rate = models.PositiveSmallIntegerField(validators=[MinValueValidator(1),MaxValueValidator(5)])
-    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
     product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name='rates')
     
 # ---------------Comment--------------------------------------------------------------------------------
 class Comment(models.Model):
     text = models.TextField()
-    user = models.ForeignKey(User,on_delete=models.CASCADE,related_name='comments')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name='comments')
     product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name='comments')
     parent = models.ForeignKey('self',on_delete=models.CASCADE,null=True,blank=True,related_name='replis')
 
@@ -79,7 +80,7 @@ class Comment(models.Model):
 
 class Reaction(models.Model):
     FEEDBACK_OPTIONS = (('L','Like'),('D','Dislike'))
-    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
     comment = models.ForeignKey(Product,on_delete=models.CASCADE)
     feedback = models.CharField(max_length=1,choices=FEEDBACK_OPTIONS)
     class Meta:

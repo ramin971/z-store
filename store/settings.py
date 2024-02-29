@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -39,10 +40,27 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # thirdparty app
     'rest_framework',
+    'rest_framework_simplejwt',
+    'django_filters',
     'debug_toolbar',
+    'djoser',
     # my app
     'core',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=240),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+
+}
 
 INTERNAL_IPS = [
     # ...
@@ -128,8 +146,21 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+MEDIA_ROOT = BASE_DIR/'media'
+MEDIA_URL = '/media/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+AUTH_USER_MODEL = 'auth_app.User'
+
+# require for custom-user ----------------------
+# DJOSER = {
+#     'SERIALIZERS': {
+#         'user_create': 'auth_app.serializers.UserCreateSerializer',
+#         'user': 'auth_app.serializers.UserSerializer',
+#         'current_user': 'auth_app.serializers.UserSerializer'
+#     }
+# }
