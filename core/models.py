@@ -10,7 +10,7 @@ class Category(models.Model):
 
     class Meta:
         constraints =[
-            models.UniqueConstraint(fields=['slug','parent__slug'],name='unique_slug_category')
+            models.UniqueConstraint(fields=['slug','parent'],name='unique_slug_category')
         ]
 
     def __str__(self) -> str:
@@ -27,14 +27,18 @@ class Category(models.Model):
 # ---------------Product(related)--------------------------------------------------------------------------------
 class Tag(models.Model):
     value = models.CharField(max_length=30,unique=True)
+    def __str__(self) -> str:
+        return self.value
 
 class Description(models.Model):
-    video = models.FileField(upload_to='upload/video')
+    video = models.FileField(upload_to='video')
     text = models.TextField()
 
 
 class Size(models.Model):
     value = models.CharField(max_length=20,unique=True)
+    def __str__(self) -> str:
+        return self.value
 
 # ---------------Product--------------------------------------------------------------------------------
 class Product(models.Model):
@@ -43,7 +47,9 @@ class Product(models.Model):
     category = models.ForeignKey(Category,on_delete=models.PROTECT,related_name='products')
     description = models.OneToOneField(Description,on_delete=models.SET_NULL,null=True,blank=True)
     sizes = models.ManyToManyField(Size,related_name='products')
-    tags = models.ManyToManyField(Tag,related_name='products')
+    tags = models.ManyToManyField(Tag,blank=True,related_name='products')
+    price = models.PositiveIntegerField()
+    stock = models.PositiveSmallIntegerField(validators=[MinValueValidator(0)])
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     
@@ -51,7 +57,7 @@ class Product(models.Model):
         return f'{self.name}'
 
 class ProductImage(models.Model):
-    image = models.ImageField(upload_to='upload/image')
+    image = models.ImageField(upload_to='image')
     product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name='images')
 
     def __str__(self) -> str:

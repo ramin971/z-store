@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'djoser',
     # my app
+    'auth_app',
     'core',
 ]
 
