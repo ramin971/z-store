@@ -1,7 +1,9 @@
 from typing import Any
 from django.contrib import admin
-from django.db.models import Avg
+from django.db.models import Avg,F
+from django.utils import timezone
 from . import models
+import jdatetime
 
 @admin.register(models.Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -42,7 +44,7 @@ class ProductAdmin(admin.ModelAdmin):
     autocomplete_fields = ['category']
     filter_horizontal = ['sizes','tags']
     list_select_related = ['category','category__parent']
-    list_display = ['name','rate','category','price','stock','sizes','tags','updated']
+    list_display = ['name','rate','category','price','stock','size','tag','update']
     prepopulated_fields = {'slug':('name',)}
     ordering = ['-updated']
     list_per_page = 10
@@ -53,19 +55,26 @@ class ProductAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).annotate(rate=Avg('rates__rate'))
 
-    def sizes(self,instance):
-        return ','.join([str(i.value) for i in instance.size.all()])
-        return list(instance.sizes.all().values_list('value',flat=True))
-        return [instance.values_list('sizes__value')]
-        return [size.value for size in instance.sizes.all()]
 
-    def tags(self,instance):
-        return ",".join([p.value for p in instance.sizes.all()])
-        return [tag.value for tag in instance.tags.all()]
+    def size(self,instance):
+        # return ','.join([str(i.value) for i in instance.sizes.all()])
+        # return [size.value for size in instance.sizes.all()]
+        return list(instance.sizes.all().values_list('value',flat=True))
+
+    def tag(self,instance):
+        # return ",".join([p.value for p in instance.sizes.all()])
+        # return [tag.value for tag in instance.tags.all()]
+        return list(instance.tags.all().values_list('value',flat=True))
     
     def rate(self,instance):
         return f'{instance.rate}'
-
+    
+    def update(self,instance):
+        updated=instance.updated
+        local_time = timezone.localtime(updated) # change local timezone in setting to convert time
+        converted_date = jdatetime.datetime.fromgregorian(datetime=local_time) # don't convert time. the solution is above the line.
+        return converted_date.strftime("%Y-%m-%d %H:%M:%S")
+    
 @admin.register(models.ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
     list_display = ['product','image']
@@ -83,8 +92,8 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(models.Comment)
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ['product']
-    # list_select_related = ['product','user']
+    list_display = ['product','parent']
+    list_select_related = ['product','user','parent']
 
 
 

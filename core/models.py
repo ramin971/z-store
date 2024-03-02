@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import MaxValueValidator,MinValueValidator
 from django.conf import settings
-
+from rest_framework.exceptions import NotAcceptable
 # ---------------Category--------------------------------------------------------------------------------
 class Category(models.Model):
     name = models.CharField(max_length=50,unique=True)
@@ -67,6 +67,11 @@ class Rating(models.Model):
     rate = models.PositiveSmallIntegerField(validators=[MinValueValidator(1),MaxValueValidator(5)])
     user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
     product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name='rates')
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=('user','product'),name='unique_rate')
+        ]
     
 # ---------------Comment--------------------------------------------------------------------------------
 class Comment(models.Model):
@@ -79,15 +84,22 @@ class Comment(models.Model):
         ordering = ['-id']
 
     def __str__(self) -> str:
-        return f'{self.product}'
-
+        return f'{self.product}-{self.user}-{self.id}'
+    
+    # preventing the use of this comment(self) as its parent during update ---------
+    def save(self,*args,**kwargs):
+        print('#######start...')
+        if self == self.parent:
+            raise NotAcceptable('jfsdiai')
+        return super().save(*args,**kwargs)
+      
 # class Reply(models.Model):
 #     pass
 
 class Reaction(models.Model):
     FEEDBACK_OPTIONS = (('L','Like'),('D','Dislike'))
     user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
-    comment = models.ForeignKey(Product,on_delete=models.CASCADE)
+    comment = models.ForeignKey(Comment,on_delete=models.CASCADE)
     feedback = models.CharField(max_length=1,choices=FEEDBACK_OPTIONS)
     class Meta:
         constraints = [
