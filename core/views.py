@@ -1,8 +1,10 @@
 from rest_framework import viewsets,mixins
 from rest_framework.exceptions import MethodNotAllowed
-from .models import Category,Tag,Description,Size
+from .models import Category,Tag,Description,Size,Product,ProductImage
 from .serializers import CategorySerializer,TagSerializer\
-                        ,DescriptionSerializer,SizeSerializer
+                        ,DescriptionSerializer,SizeSerializer,ProductSerialzier
+from django.db.models import Avg
+
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -29,8 +31,13 @@ class DescriptionViewSet(mixins.CreateModelMixin,
 
 
 class SizeViewSet(viewsets.ModelViewSet):
-    
     queryset = Size.objects.all()
     serializer_class = SizeSerializer
 
     
+class ProductViewSet(viewsets.ModelViewSet):
+    queryset = Product.objects.all().annotate(avg_rate=Avg('rates__rate'))
+    serializer_class = ProductSerialzier
+
+    def get_serializer_context(self):
+        return {'request':self.request}

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category,Tag,Description,Size
+from .models import Category,Tag,Description,Size,Product,ProductImage
 
 class CategorySerializer(serializers.ModelSerializer):
     parent = serializers.StringRelatedField()
@@ -21,3 +21,24 @@ class SizeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Size
         fields = ['id','value']
+
+
+class ProductSerialzier(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ['id','name','category','image','price','stock','rate','description','tags','sizes','updated']
+        read_only_fields = ['id','rate','image','updated']
+        extra_kwargs={'description':{'write_only':True},'tags':{'write_only':True}}
+
+
+    def get_image(self,obj):
+        request = self.context.get('request')
+        try:
+            image = request.build_absolute_uri(obj.images.first().image.url)
+            # images= [request.build_absolute_uri(i.image.url) for i in obj.images.all()]
+        except:
+            image = None
+        return image
+
+    def get_rate(self,instance):
+        return instance.avg_rate

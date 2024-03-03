@@ -45,7 +45,7 @@ class Product(models.Model):
     name = models.CharField(max_length=100,unique=True)
     slug = models.SlugField()
     category = models.ForeignKey(Category,on_delete=models.PROTECT,related_name='products')
-    description = models.OneToOneField(Description,on_delete=models.SET_NULL,null=True,blank=True)
+    description = models.ForeignKey(Description,on_delete=models.SET_NULL,null=True,blank=True)
     sizes = models.ManyToManyField(Size,related_name='products')
     tags = models.ManyToManyField(Tag,blank=True,related_name='products')
     price = models.PositiveIntegerField()
@@ -90,7 +90,7 @@ class Comment(models.Model):
     def save(self,*args,**kwargs):
         print('#######start...')
         if self == self.parent:
-            raise NotAcceptable('jfsdiai')
+            raise NotAcceptable('Not Acceptable')
         return super().save(*args,**kwargs)
       
 # class Reply(models.Model):
