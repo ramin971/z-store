@@ -24,11 +24,15 @@ class SizeSerializer(serializers.ModelSerializer):
 
 
 class ProductSerialzier(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField(read_only=True)
+    rate = serializers.SerializerMethodField(read_only=True)
+    category = serializers.StringRelatedField()
+    available_sizes = serializers.StringRelatedField(many=True,read_only=True,source='sizes')
     class Meta:
         model = Product
-        fields = ['id','name','category','image','price','stock','rate','description','tags','sizes','updated']
+        fields = ['id','name','category','image','price','stock','rate','description','tags','available_sizes','sizes','updated']
         read_only_fields = ['id','rate','image','updated']
-        extra_kwargs={'description':{'write_only':True},'tags':{'write_only':True}}
+        extra_kwargs={'description':{'write_only':True},'tags':{'write_only':True},'sizes':{'write_only':True}}
 
 
     def get_image(self,obj):
