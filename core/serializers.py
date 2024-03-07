@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category,Tag,Description,Size,Product,ProductImage
+from .models import Category,Tag,Description,Size,Product,ProductImage,Rating,Comment
 
 class CategorySerializer(serializers.ModelSerializer):
     parent = serializers.StringRelatedField()
@@ -46,3 +46,18 @@ class ProductSerialzier(serializers.ModelSerializer):
 
     def get_rate(self,instance):
         return instance.avg_rate
+    
+
+
+
+
+class RatingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Rating
+        fields = ['id','product','user','rate']
+        read_only_fields=['id','user']
+
+    def create(self, validated_data):
+        user = self.context.get('user')
+        validated_data['user'] = user
+        return super().create(validated_data)

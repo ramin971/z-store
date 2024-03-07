@@ -1,8 +1,10 @@
-from rest_framework import viewsets,mixins
+from rest_framework import viewsets,mixins,generics
 from rest_framework.exceptions import MethodNotAllowed
-from .models import Category,Tag,Description,Size,Product,ProductImage
+from .models import Category,Tag,Description,Size,Product\
+                    ,ProductImage,Rating
 from .serializers import CategorySerializer,TagSerializer\
-                        ,DescriptionSerializer,SizeSerializer,ProductSerialzier
+                        ,DescriptionSerializer,SizeSerializer,ProductSerialzier\
+                        ,RatingSerializer
 from django.db.models import Avg
 
 
@@ -41,3 +43,12 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def get_serializer_context(self):
         return {'request':self.request}
+
+
+class RatingProduct(mixins.CreateModelMixin,
+                    viewsets.GenericViewSet):
+    queryset = Rating.objects.all()
+    serializer_class = RatingSerializer
+
+    def get_serializer_context(self):
+        return {'user':self.request.user}
