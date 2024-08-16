@@ -44,7 +44,7 @@ class ProductAdmin(admin.ModelAdmin):
     autocomplete_fields = ['category']
     filter_horizontal = ['sizes','tags']
     list_select_related = ['category','category__parent']
-    list_display = ['name','rate','category','price','stock','size','tag','update']
+    list_display = ['id','name','rate','category','price','stock','size','tag','update']
     prepopulated_fields = {'slug':('name',)}
     ordering = ['-updated']
     list_per_page = 10
@@ -92,7 +92,7 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(models.Comment)
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ['product','parent']
+    list_display = ['id','product','parent']
     list_select_related = ['product','user','parent']
 
 

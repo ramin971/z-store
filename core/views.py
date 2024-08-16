@@ -1,16 +1,17 @@
 from rest_framework import viewsets,mixins,generics
 from rest_framework.exceptions import MethodNotAllowed
 from .models import Category,Tag,Description,Size,Product\
-                    ,ProductImage,Rating
+                    ,ProductImage,Rating,Comment
 from .serializers import CategorySerializer,TagSerializer\
                         ,DescriptionSerializer,SizeSerializer,ProductSerialzier\
-                        ,RatingSerializer
+                        ,RatingSerializer,CommentSerializer
 from django.db.models import Avg
-
+from rest_framework.permissions import IsAuthenticated
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = [IsAuthenticated]
 
 
 class TagViewSet(viewsets.ModelViewSet):
@@ -50,5 +51,21 @@ class RatingProduct(mixins.CreateModelMixin,
     queryset = Rating.objects.all()
     serializer_class = RatingSerializer
 
+    def get_serializer_context(self):
+        return {'user':self.request.user}
+    
+class CommentViewSet(viewsets.ModelViewSet):
+    # mixins.CreateModelMixin,
+                    # mixins.RetrieveModelMixin, 
+                    # mixins.UpdateModelMixin,
+                    # mixins.DestroyModelMixin,
+                    # viewsets.GenericViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
+    # def get_queryset(self):
+    #     print('pk****: ',self.kwargs)
+    #     print('user',self.request.user)
+    #     return Comment.objects.filter(product=self.kwargs['pk'],parent__isnull=True)
     def get_serializer_context(self):
         return {'user':self.request.user}
