@@ -4,7 +4,7 @@ from .models import Category,Tag,Description,Size,Product\
                     ,ProductImage,Rating,Comment
 from .serializers import CategorySerializer,TagSerializer\
                         ,DescriptionSerializer,SizeSerializer,ProductSerialzier\
-                        ,RatingSerializer,CommentSerializer
+                        ,RatingSerializer,CommentSerializer,SimpleProductSerializer
 from django.db.models import Avg
 from rest_framework.permissions import IsAuthenticated
 
@@ -39,8 +39,18 @@ class SizeViewSet(viewsets.ModelViewSet):
 
     
 class ProductViewSet(viewsets.ModelViewSet):
+    print('***********view')
     queryset = Product.objects.all().annotate(avg_rate=Avg('rates__rate'))
-    serializer_class = ProductSerialzier
+    print('***********view2')
+
+    # serializer_class = ProductSerialzier
+    print('***********view3')
+    def get_serializer_class(self):
+        if self.action == 'create' or self.action == 'update':
+            return ProductSerialzier
+        else:
+            return SimpleProductSerializer
+        
 
     def get_serializer_context(self):
         return {'request':self.request}

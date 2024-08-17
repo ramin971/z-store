@@ -33,21 +33,42 @@ class ProductImageSerializer(serializers.ModelSerializer):
         fields = ['id','product','image']
 
 
-class ProductSerialzier(serializers.ModelSerializer):
-    # TEST
-    # images = ProductImageSerializer(many=True,write_only=True)
-    images = serializers.ListField(child=serializers.ImageField(),write_only=True)
-    # images = serializers.ImageField()
-
-
+class SimpleProductSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField(read_only=True)
     rate = serializers.SerializerMethodField(read_only=True)
     category = serializers.StringRelatedField()
-    available_sizes = serializers.StringRelatedField(many=True,read_only=True,source='sizes')
+    sizes = serializers.StringRelatedField(many=True,read_only=True)
+    tags = serializers.StringRelatedField(many=True,read_only=True)
+
     class Meta:
         model = Product
-        fields = ['id','name','category','image','images','price','stock','rate','description','tags','available_sizes','sizes','updated']
+        fields = ['id','name','category','image','price','stock','rate','description','tags','sizes','updated']
         read_only_fields = ['id','rate','image','updated']
+        extra_kwargs={'description':{'write_only':True}}
+
+    def get_image(self,instance):
+        request = self.context.get('request')
+        try:
+            image = request.build_absolute_uri(instance.images.first().image.url)
+            # images= [request.build_absolute_uri(i.image.url) for i in instance.images.all()]
+        except:
+            image = None
+        return image
+    def get_rate(self,instance):
+        return instance.avg_rate
+
+
+
+class ProductSerialzier(serializers.ModelSerializer):
+    images = serializers.ListField(child=serializers.ImageField(),write_only=True)
+
+    # category = serializers.StringRelatedField()
+    size = serializers.StringRelatedField(many=True,read_only=True,source='sizes')
+    tag = serializers.StringRelatedField(many=True,read_only=True,source='tags')
+    class Meta:
+        model = Product
+        fields = ['id','name','category','images','price','stock','description','tag','size','tags','sizes']
+        read_only_fields = ['id','updated']
         extra_kwargs={'description':{'write_only':True},'tags':{'write_only':True},'sizes':{'write_only':True}}
 
     # TEST
@@ -62,17 +83,19 @@ class ProductSerialzier(serializers.ModelSerializer):
 
         return product
 
-    def get_image(self,obj):
-        request = self.context.get('request')
-        try:
-            image = request.build_absolute_uri(obj.images.first().image.url)
-            # images= [request.build_absolute_uri(i.image.url) for i in obj.images.all()]
-        except:
-            image = None
-        return image
 
-    def get_rate(self,instance):
-        return instance.avg_rate
+
+    # def get_rate(self,instance):
+    #     print('***********seriallzier')
+        
+    #     if hasattr(instance,'avg_rate'):
+    #         print('***********seriallzier2')
+
+    #         return instance.avg_rate
+    #     print('***********seriallzier3')
+
+        
+    #     return None
     
 
 
