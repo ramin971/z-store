@@ -26,11 +26,11 @@ class SizeSerializer(serializers.ModelSerializer):
 
 
 # TEST
-class ProductImageSerializer(serializers.ModelSerializer):
-    # images = serializers.ListField(child=serializers.ImageField(),write_only=True)
-    class Meta:
-        model = ProductImage
-        fields = ['id','product','image']
+# class ProductImageSerializer(serializers.ModelSerializer):
+#     # images = serializers.ListField(child=serializers.ImageField(),write_only=True)
+#     class Meta:
+#         model = ProductImage
+#         fields = ['id','product','image']
 
 
 class SimpleProductSerializer(serializers.ModelSerializer):
@@ -42,9 +42,9 @@ class SimpleProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ['id','name','category','image','price','stock','rate','description','tags','sizes','updated']
-        read_only_fields = ['id','rate','image','updated']
-        extra_kwargs={'description':{'write_only':True}}
+        fields = ['id','name','category','image','price','stock','rate','tags','sizes','updated']
+        read_only_fields = ['id','rate','updated']
+        # extra_kwargs={'description':{'write_only':True}}
 
     def get_image(self,instance):
         request = self.context.get('request')
@@ -56,7 +56,21 @@ class SimpleProductSerializer(serializers.ModelSerializer):
         return image
     def get_rate(self,instance):
         return instance.avg_rate
+    
 
+class DetailProductSerializer(SimpleProductSerializer):
+    images = serializers.SerializerMethodField(read_only=True)
+
+    class Meta(SimpleProductSerializer.Meta):
+        fields = ['id','name','category','images','price','stock','rate','description','tags','sizes','updated']
+
+    def get_images(self,instance):
+        request = self.context.get('request')
+        try:
+            images= [request.build_absolute_uri(i.image.url) for i in instance.images.all()]
+        except:
+            images = None
+        return images
 
 
 class ProductSerialzier(serializers.ModelSerializer):
@@ -71,17 +85,32 @@ class ProductSerialzier(serializers.ModelSerializer):
         read_only_fields = ['id','updated']
         extra_kwargs={'description':{'write_only':True},'tags':{'write_only':True},'sizes':{'write_only':True}}
 
-    # TEST
-    def create(self, validated_data):
+    def save(self, **kwargs):
+        validated_data = self.validated_data
+        if self.instance:
+            if 'images' in validated_data:
+                print('delete old images.....')
+                self.instance.images.all().delete()
+        # print('*****kwa:',kwargs)
         images_data = validated_data.pop('images')
-        # product = Product.objects.create(validated_data)
-        product = super().create(validated_data)
-        print('$$$$$$$$$product:',product)
+        instance = super().save(**kwargs)
         for image in images_data:
-            print('add image')
-            ProductImage.objects.create(product=product,image=image)
+            print('add image.....')
+            ProductImage.objects.create(product=instance,image=image)
 
-        return product
+        return instance
+
+    # TEST
+    # def create(self, validated_data):
+    #     images_data = validated_data.pop('images')
+    #     # product = Product.objects.create(validated_data)
+    #     product = super().create(validated_data)
+    #     print('$$$$$$$$$product:',product)
+    #     for image in images_data:
+    #         print('add image')
+    #         ProductImage.objects.create(product=product,image=image)
+
+    #     return product
 
 
 
@@ -113,18 +142,11 @@ class RatingSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
     
 
-# class ProductImageSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = ProductImage
-#         fields = ['id','product','image']
     
 
 class CommentSerializer(serializers.ModelSerializer):
     replis = serializers.SerializerMethodField(read_only=True)
-    # replis = serializers.ListField(child=,source='')
-    # replis = ReplySerializer(many=True,read_only=True)
-
-
+   
     class Meta:
         model = Comment
         fields = ['id','user','text','product','parent','replis']
