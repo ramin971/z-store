@@ -4,7 +4,7 @@ from django.conf import settings
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    parent = serializers.StringRelatedField()
+    # parent = serializers.StringRelatedField()
     class Meta:
         model = Category
         fields = ['id','name','slug','parent']
@@ -26,56 +26,46 @@ class SizeSerializer(serializers.ModelSerializer):
 
 
 # TEST
-# class ProductImageSerializer(serializers.ModelSerializer):
-#     # images = serializers.ListField(child=serializers.ImageField(),write_only=True)
-#     class Meta:
-#         model = ProductImage
-#         fields = ['id','product','image']
+class ProductImageSerializer(serializers.ModelSerializer):
+    # images = serializers.ListField(child=serializers.ImageField(),write_only=True)
+    class Meta:
+        model = ProductImage
+        fields = ['image']
+
+    def to_representation(self, instance):
+        request = self.context.get('request')
+
+
+        return request.build_absolute_uri(instance.image.url)
 
 
 class SimpleProductSerializer(serializers.ModelSerializer):
-    image = serializers.SerializerMethodField(read_only=True)
     rate = serializers.SerializerMethodField(read_only=True)
     category = serializers.StringRelatedField()
     sizes = serializers.StringRelatedField(many=True,read_only=True)
     tags = serializers.StringRelatedField(many=True,read_only=True)
+    images = ProductImageSerializer(read_only=True,many=True)
 
     class Meta:
         model = Product
-        fields = ['id','name','category','image','price','stock','rate','tags','sizes','updated']
+        fields = ['id','name','category','images','price','stock','rate','tags','sizes','updated']
         read_only_fields = ['id','rate','updated']
-        # extra_kwargs={'description':{'write_only':True}}
 
-    def get_image(self,instance):
-        request = self.context.get('request')
-        try:
-            image = request.build_absolute_uri(instance.images.first().image.url)
-            # images= [request.build_absolute_uri(i.image.url) for i in instance.images.all()]
-        except:
-            image = None
-        return image
+
     def get_rate(self,instance):
         return instance.avg_rate
     
 
 class DetailProductSerializer(SimpleProductSerializer):
-    images = serializers.SerializerMethodField(read_only=True)
+    images = ProductImageSerializer(read_only=True,many=True)
 
     class Meta(SimpleProductSerializer.Meta):
         fields = ['id','name','category','images','price','stock','rate','description','tags','sizes','updated']
 
-    def get_images(self,instance):
-        request = self.context.get('request')
-        try:
-            images= [request.build_absolute_uri(i.image.url) for i in instance.images.all()]
-        except:
-            images = None
-        return images
 
 
 class ProductSerialzier(serializers.ModelSerializer):
     images = serializers.ListField(child=serializers.ImageField(),write_only=True)
-
     # category = serializers.StringRelatedField()
     size = serializers.StringRelatedField(many=True,read_only=True,source='sizes')
     tag = serializers.StringRelatedField(many=True,read_only=True,source='tags')
@@ -88,10 +78,10 @@ class ProductSerialzier(serializers.ModelSerializer):
     def save(self, **kwargs):
         validated_data = self.validated_data
         if self.instance:
+            # PUT
             if 'images' in validated_data:
                 print('delete old images.....')
                 self.instance.images.all().delete()
-        # print('*****kwa:',kwargs)
         images_data = validated_data.pop('images')
         instance = super().save(**kwargs)
         for image in images_data:
