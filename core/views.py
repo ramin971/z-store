@@ -1,11 +1,12 @@
-from rest_framework import viewsets,mixins,generics
-from rest_framework.exceptions import MethodNotAllowed
+from rest_framework import viewsets,mixins,generics,status
+from rest_framework.response import Response
+from rest_framework.exceptions import ParseError
 from .models import Category,Tag,Description,Size,Product\
-                    ,ProductImage,Rating,Comment
+                    ,ProductImage,Rating,Comment,Reaction
 from .serializers import CategorySerializer,TagSerializer\
                         ,DescriptionSerializer,SizeSerializer,ProductSerialzier\
                         ,RatingSerializer,CommentSerializer,SimpleProductSerializer\
-                        ,DetailProductSerializer,ProductImageSerializer
+                        ,DetailProductSerializer,ProductImageSerializer,ReactionSerializer
 from django.db.models import Avg
 from rest_framework.permissions import IsAuthenticated
 
@@ -50,6 +51,13 @@ class ProductViewSet(viewsets.ModelViewSet):
         else:
             return DetailProductSerializer
         
+class ProductImageViewset(viewsets.ModelViewSet):
+    queryset = ProductImage.objects.all()
+    serializer_class = ProductImageSerializer
+
+    def get_serializer_context(self):
+        return {'request':self.request}
+    
 
 
 class RatingProduct(mixins.CreateModelMixin,
@@ -76,9 +84,32 @@ class CommentViewSet(viewsets.ModelViewSet):
     def get_serializer_context(self):
         return {'user':self.request.user}
     
-class ProductImageViewset(viewsets.ModelViewSet):
-    queryset = ProductImage.objects.all()
-    serializer_class = ProductImageSerializer
 
+
+class ReactionViewSet(viewsets.ModelViewSet):
+    queryset = Reaction.objects.all()
+    serializer_class = ReactionSerializer
+    permission_classes = [IsAuthenticated]
+    
+
+    def create(self, request, *args, **kwargs):
+        comment_id = request.data.get('comment')
+        reaction_type = request.data.get('reaction_type')
+        try:
+            existing_reaction = Reaction.objects.get(comment_id=comment_id,user=request.user)
+            if existing_reaction.reaction_type == reaction_type:
+                # print('same........')
+                raise ParseError(detail='you have already reacted with this type.')
+            else:
+                # print('change........')
+                existing_reaction.reaction_type = reaction_type
+                existing_reaction.save()
+                serializer = ReactionSerializer(existing_reaction)
+                return Response(serializer.data)
+        except Reaction.DoesNotExist:
+            # print('except........')
+            return super().create(request, *args, **kwargs)
+        
     def get_serializer_context(self):
-        return {'request':self.request}
+        return {'user':self.request.user}
+  

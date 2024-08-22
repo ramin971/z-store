@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category,Tag,Description,Size,Product,ProductImage,Rating,Comment
+from .models import Category,Tag,Description,Size,Product,ProductImage,Rating,Comment,Reaction
 from django.conf import settings
 
 
@@ -57,7 +57,6 @@ class SimpleProductSerializer(serializers.ModelSerializer):
     
 
 class DetailProductSerializer(SimpleProductSerializer):
-    images = ProductImageSerializer(read_only=True,many=True)
 
     class Meta(SimpleProductSerializer.Meta):
         fields = ['id','name','category','images','price','stock','rate','description','tags','sizes','updated']
@@ -156,7 +155,7 @@ class CommentSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError('max_nested_level does not support it')
             count_level = count_level + 1
             parent = parent.parent
-            print(f'##############parent:{parent},,level:{count_level}')
+            # print(f'##############parent:{parent},,level:{count_level}')
         return value
     
 
@@ -165,3 +164,14 @@ class CommentSerializer(serializers.ModelSerializer):
         serializer = CommentSerializer(replis,many=True)
         return serializer.data
 
+
+class ReactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reaction
+        fields = ['id','user','comment','reaction_type']
+        read_only_fields = ['id','user']
+        
+    def create(self, validated_data):
+        user = self.context.get('user')
+        validated_data['user'] = user
+        return super().create(validated_data)

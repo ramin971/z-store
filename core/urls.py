@@ -1,7 +1,7 @@
 from django.urls import path,include
 from rest_framework.routers import DefaultRouter
 from .views import CategoryViewSet,TagViewSet,DescriptionViewSet,SizeViewSet\
-                    ,ProductViewSet,RatingProduct,CommentViewSet
+                    ,ProductViewSet,RatingProduct,CommentViewSet,ReactionViewSet
 
 # from rest_framework import permissions
 # from drf_yasg.views import get_schema_view
@@ -28,15 +28,15 @@ router.register(r'size', SizeViewSet)
 router.register(r'product', ProductViewSet)
 router.register(r'rating',RatingProduct)
 router.register(r'comment',CommentViewSet,basename='comment')
+router.register(r'reactions',ReactionViewSet)
 
 
 
 urlpatterns = [
     path('auth/', include('auth_app.urls')),
     path('',include(router.urls)),
-    # path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
-    # path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    # path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    
+    # swagger
     path('schema/', SpectacularAPIView.as_view(), name='schema'),
     path('schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),

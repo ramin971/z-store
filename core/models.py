@@ -93,14 +93,12 @@ class Comment(models.Model):
             raise NotAcceptable('Not Acceptable')
         return super().save(*args,**kwargs)
       
-# class Reply(models.Model):
-#     pass
 
 class Reaction(models.Model):
-    FEEDBACK_OPTIONS = (('L','Like'),('D','Dislike'))
+    REACTION_OPTIONS = (('L','Like'),('D','Dislike'))
     user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
-    comment = models.ForeignKey(Comment,on_delete=models.CASCADE)
-    feedback = models.CharField(max_length=1,choices=FEEDBACK_OPTIONS)
+    comment = models.ForeignKey(Comment,on_delete=models.CASCADE,related_name='reactions')
+    reaction_type = models.CharField(max_length=1,choices=REACTION_OPTIONS)
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=('user','comment'),name='unique_reaction')
