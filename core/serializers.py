@@ -1,7 +1,13 @@
 from rest_framework import serializers
 from .models import Category,Tag,Description,Size,Product,ProductImage,Rating,Comment,Reaction
 from django.conf import settings
+from auth_app.models import User
 
+
+class SimpleUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id','username']
 
 class CategorySerializer(serializers.ModelSerializer):
     # parent = serializers.StringRelatedField()
@@ -131,47 +137,68 @@ class RatingSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
     
 
-    
-
-class CommentSerializer(serializers.ModelSerializer):
-    replis = serializers.SerializerMethodField(read_only=True)
-   
-    class Meta:
-        model = Comment
-        fields = ['id','user','text','product','parent','replis']
-        read_only_fields= ['id','user']
-
-    def create(self, validated_data):
-        user = self.context.get('user')
-        validated_data['user'] = user
-        return super().create(validated_data)
-    
-    def validate_parent(self,value):
-        parent = value
-        max_level = settings.MAX_NESTED_LEVEL_COMMENT
-        count_level = 0
-        while parent is not None:
-            if max_level <= count_level:
-                raise serializers.ValidationError('max_nested_level does not support it')
-            count_level = count_level + 1
-            parent = parent.parent
-            # print(f'##############parent:{parent},,level:{count_level}')
-        return value
-    
-
-    def get_replis(self,instance):
-        replis = instance.replis
-        serializer = CommentSerializer(replis,many=True)
-        return serializer.data
-
 
 class ReactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reaction
         fields = ['id','user','comment','reaction_type']
         read_only_fields = ['id','user']
+        # extra_kwargs={'comment':{'write_only':True}}
         
     def create(self, validated_data):
         user = self.context.get('user')
         validated_data['user'] = user
         return super().create(validated_data)
+
+class CommentSerializer(serializers.ModelSerializer):
+    user = SimpleUserSerializer(read_only=True)
+    likes = serializers.SerializerMethodField()
+    dislikes = serializers.SerializerMethodField()
+    class Meta:
+        model = Comment
+        fields = ['id','user','text','product','likes','dislikes']
+        # read_only_fields= ['id','user']
+
+    def create(self, validated_data):
+        user = self.context.get('user')
+        validated_data['user'] = user
+        return super().create(validated_data)
+    def get_likes(self,instance):
+        return instance.likes
+    def get_dislikes(self,instance):
+        return instance.dislikes
+
+# class CommentSerializer(serializers.ModelSerializer):
+#     # replis = serializers.SerializerMethodField(read_only=True)
+#     replis = SimpleCommentSerializer(many=True,read_only=True)
+#     # reactions = ReactionSerializer(many=True,read_only=True)
+   
+#     class Meta:
+#         model = Comment
+#         fields = ['id','user','text','product_id','replis']
+#         read_only_fields= ['id','user']
+
+#     def create(self, validated_data):
+#         user = self.context.get('user')
+#         validated_data['user'] = user
+#         return super().create(validated_data)
+    
+#     def validate_parent(self,value):
+#         parent = value
+#         max_level = settings.MAX_NESTED_LEVEL_COMMENT
+#         count_level = 0
+#         while parent is not None:
+#             if max_level <= count_level:
+#                 raise serializers.ValidationError('max_nested_level does not support it')
+#             count_level = count_level + 1
+#             parent = parent.parent
+#             # print(f'##############parent:{parent},,level:{count_level}')
+#         return value
+    
+
+    # def get_replis(self,instance):
+    #     replis = instance.replis
+    #     serializer = CommentSerializer(replis,many=True)
+    #     return serializer.data
+
+

@@ -78,7 +78,7 @@ class Comment(models.Model):
     text = models.TextField()
     user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name='comments')
     product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name='comments')
-    parent = models.ForeignKey('self',on_delete=models.CASCADE,null=True,blank=True,related_name='replis')
+    # parent = models.ForeignKey('self',on_delete=models.CASCADE,null=True,blank=True,related_name='replis')
 
     class Meta:
         ordering = ['-id']
@@ -87,11 +87,11 @@ class Comment(models.Model):
         return f'{self.product}-{self.user}-{self.id}'
     
     # preventing the use of this comment(self) as its parent during update ---------
-    def save(self,*args,**kwargs):
-        print('#######start...')
-        if self == self.parent:
-            raise NotAcceptable('Not Acceptable')
-        return super().save(*args,**kwargs)
+    # def save(self,*args,**kwargs):
+    #     print('#######start...')
+    #     if self == self.parent:
+    #         raise NotAcceptable('Not Acceptable')
+    #     return super().save(*args,**kwargs)
       
 
 class Reaction(models.Model):

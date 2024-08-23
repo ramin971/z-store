@@ -92,8 +92,8 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(models.Comment)
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ['id','product','parent']
-    list_select_related = ['product','user','parent']
+    list_display = ['id','product']
+    list_select_related = ['product','user']
 
 
 

@@ -6,8 +6,9 @@ from .models import Category,Tag,Description,Size,Product\
 from .serializers import CategorySerializer,TagSerializer\
                         ,DescriptionSerializer,SizeSerializer,ProductSerialzier\
                         ,RatingSerializer,CommentSerializer,SimpleProductSerializer\
-                        ,DetailProductSerializer,ProductImageSerializer,ReactionSerializer
-from django.db.models import Avg
+                        ,DetailProductSerializer,ProductImageSerializer,ReactionSerializer\
+                        
+from django.db.models import Avg,Count,Case,When,IntegerField
 from rest_framework.permissions import IsAuthenticated
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -74,7 +75,11 @@ class CommentViewSet(viewsets.ModelViewSet):
                     # mixins.UpdateModelMixin,
                     # mixins.DestroyModelMixin,
                     # viewsets.GenericViewSet):
-    queryset = Comment.objects.all()
+    queryset = Comment.objects.all().select_related('user')\
+        .annotate(likes=Count(Case(When(reactions__reaction_type='L', then=1),output_field=IntegerField(),)),\
+                    dislikes=Count(Case(When(reactions__reaction_type='D', then=1),output_field=IntegerField(),)))
+
+
     serializer_class = CommentSerializer
 
     # def get_queryset(self):
@@ -87,9 +92,9 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class ReactionViewSet(viewsets.ModelViewSet):
-    queryset = Reaction.objects.all()
+    queryset = Reaction.objects.select_related('comment__user','comment__product','user').all()
     serializer_class = ReactionSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     
 
     def create(self, request, *args, **kwargs):

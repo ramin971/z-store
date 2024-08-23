@@ -186,4 +186,4 @@ AUTH_USER_MODEL = 'auth_app.User'
 #     }
 # }
 
-MAX_NESTED_LEVEL_COMMENT = 2
+# MAX_NESTED_LEVEL_COMMENT = 2
