@@ -1,6 +1,7 @@
 from rest_framework import viewsets,mixins,generics,status
 from rest_framework.response import Response
 from rest_framework.exceptions import ParseError
+from .paginations import CustomPagination
 from .models import Category,Tag,Description,Size,Product\
                     ,ProductImage,Rating,Comment,Reaction
 from .serializers import CategorySerializer,TagSerializer\
@@ -8,8 +9,9 @@ from .serializers import CategorySerializer,TagSerializer\
                         ,RatingSerializer,CommentSerializer,SimpleProductSerializer\
                         ,DetailProductSerializer,ProductImageSerializer,ReactionSerializer\
                         
-from django.db.models import Avg,Count,Case,When,IntegerField
+from django.db.models import Avg,Count,Case,When,IntegerField,Q
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -75,12 +77,18 @@ class CommentViewSet(viewsets.ModelViewSet):
                     # mixins.UpdateModelMixin,
                     # mixins.DestroyModelMixin,
                     # viewsets.GenericViewSet):
-    queryset = Comment.objects.all().select_related('user')\
-        .annotate(likes=Count(Case(When(reactions__reaction_type='L', then=1),output_field=IntegerField(),)),\
-                    dislikes=Count(Case(When(reactions__reaction_type='D', then=1),output_field=IntegerField(),)))
+
+    queryset = Comment.objects.select_related('user')\
+        .annotate(likes=Count('reactions',filter=Q(reactions__reaction_type='L')),
+                  dislikes=Count('reactions',filter=Q(reactions__reaction_type='D')))
+    # SAME........
+    # queryset = Comment.objects.all().select_related('user')\
+    #     .annotate(likes=Count(Case(When(reactions__reaction_type='L', then=1),output_field=IntegerField(),)),\
+    #                 dislikes=Count(Case(When(reactions__reaction_type='D', then=1),output_field=IntegerField(),)))
 
 
     serializer_class = CommentSerializer
+    pagination_class = CustomPagination
 
     # def get_queryset(self):
     #     print('pk****: ',self.kwargs)
