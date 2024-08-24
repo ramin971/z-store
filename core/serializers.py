@@ -72,11 +72,11 @@ class DetailProductSerializer(SimpleProductSerializer):
 class ProductSerialzier(serializers.ModelSerializer):
     images = serializers.ListField(child=serializers.ImageField(),write_only=True)
     # category = serializers.StringRelatedField()
-    size = serializers.StringRelatedField(many=True,read_only=True,source='sizes')
-    tag = serializers.StringRelatedField(many=True,read_only=True,source='tags')
+    # size = serializers.StringRelatedField(many=True,read_only=True,source='sizes')
+    # tag = serializers.StringRelatedField(many=True,read_only=True,source='tags')
     class Meta:
         model = Product
-        fields = ['id','name','category','images','price','stock','description','tag','size','tags','sizes']
+        fields = ['id','name','category','images','price','stock','description','tags','sizes']
         read_only_fields = ['id','updated']
         extra_kwargs={'description':{'write_only':True},'tags':{'write_only':True},'sizes':{'write_only':True}}
 
@@ -150,32 +150,41 @@ class ReactionSerializer(serializers.ModelSerializer):
         validated_data['user'] = user
         return super().create(validated_data)
 
-class CommentSerializer(serializers.ModelSerializer):
-    user = SimpleUserSerializer(read_only=True)
-    likes = serializers.SerializerMethodField()
-    dislikes = serializers.SerializerMethodField()
+class SimpleCommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
-        fields = ['id','user','text','product','likes','dislikes']
-        # read_only_fields= ['id','user']
+        fields = ['id','user','text','product']
+        read_only_fields = ['id','user']
 
     def create(self, validated_data):
         user = self.context.get('user')
         validated_data['user'] = user
         return super().create(validated_data)
+
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    user = SimpleUserSerializer(read_only=True)
+    likes = serializers.SerializerMethodField(read_only=True)
+    dislikes = serializers.SerializerMethodField(read_only=True)
+    class Meta(SimpleCommentSerializer.Meta):
+        model = Comment
+        fields = ['id','user','text','product','likes','dislikes']
+
+
     def get_likes(self,instance):
         return instance.likes
     def get_dislikes(self,instance):
         return instance.dislikes
 
 # class CommentSerializer(serializers.ModelSerializer):
-#     # replis = serializers.SerializerMethodField(read_only=True)
-#     replis = SimpleCommentSerializer(many=True,read_only=True)
+#     replis = serializers.SerializerMethodField(read_only=True)
+#     # replis = SimpleCommentSerializer(many=True,read_only=True)
 #     # reactions = ReactionSerializer(many=True,read_only=True)
    
 #     class Meta:
 #         model = Comment
-#         fields = ['id','user','text','product_id','replis']
+#         fields = ['id','user','text','product','parent','replis']
 #         read_only_fields= ['id','user']
 
 #     def create(self, validated_data):
@@ -196,9 +205,9 @@ class CommentSerializer(serializers.ModelSerializer):
 #         return value
     
 
-    # def get_replis(self,instance):
-    #     replis = instance.replis
-    #     serializer = CommentSerializer(replis,many=True)
-    #     return serializer.data
+#     def get_replis(self,instance):
+#         replis = instance.replis
+#         serializer = CommentSerializer(replis,many=True)
+#         return serializer.data
 
 
