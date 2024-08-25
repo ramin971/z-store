@@ -2,9 +2,10 @@ from rest_framework import viewsets,mixins,generics,status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly,IsAuthenticated
 from rest_framework.exceptions import ParseError
-from rest_framework.filters import SearchFilter
+from rest_framework.filters import SearchFilter,OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .paginations import CustomPagination
+from .filters import ProductFilter
 from .models import Category,Tag,Description,Size,Product\
                     ,ProductImage,Rating,Comment,Reaction
 from .serializers import CategorySerializer,TagSerializer\
@@ -55,16 +56,11 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.prefetch_related('sizes','tags','images').select_related('category','description').annotate(avg_rate=Avg('rates__rate'))
     pagination_class = CustomPagination
     permission_classes = [IsAuthenticatedOrReadOnly]
-    filter_backends = [DjangoFilterBackend,SearchFilter]
-    filterset_fields = {
-        'category__id':['exact'],
-        'sizes__id':['exact'],
-        'tags__id':['exact'],
-        'price':['range'],
-        # 'stock':['']
-    }
-    # ['category__id','sizes__id','tags__id',]
+    filter_backends = [DjangoFilterBackend,SearchFilter,OrderingFilter]
+    filterset_class = ProductFilter
     search_fields = ['name']
+    ordering_fields = ['created','price','avg_rate']
+
     def get_serializer_class(self):
         if self.action in ['create','update','partial_update']:
             return ProductSerialzier
