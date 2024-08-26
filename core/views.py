@@ -13,8 +13,9 @@ from .serializers import CategorySerializer,TagSerializer\
                         ,RatingSerializer,CommentSerializer,SimpleCommentSerializer\
                             ,SimpleProductSerializer,DetailProductSerializer\
                                 ,ProductImageSerializer,ReactionSerializer\
+                                ,SimpleCategorySerializer
                         
-from django.db.models import Avg,Count,Case,When,IntegerField,Q
+from django.db.models import Avg,Count,Case,When,IntegerField,Q,Max
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -68,10 +69,103 @@ class ProductViewSet(viewsets.ModelViewSet):
             return SimpleProductSerializer
         else:
             return DetailProductSerializer
+        
     
     # def get_queryset(self):
     #     query = Product.objects.prefetch_related('size','tag','images').select_related('category','description').annotate(avg_rate=Avg('rates__rate'))
     #     return query
+
+    def list(self, request, *args, **kwargs):
+        max_price=self.queryset.aggregate(max_price=Max('price'))['max_price']
+        category = Category.objects.only('name','id')
+        category_serializer = SimpleCategorySerializer(category,many=True)
+        category_items = category_serializer.data
+        size = Size.objects.all()
+        size_serializer = SizeSerializer(size,many=True)
+        size_items = size_serializer.data
+        tag = Tag.objects.all()
+        tag_serializer = TagSerializer(tag,many=True)
+        tag_items = tag_serializer.data
+        # items = self.queryset.values('category_id','category__name').distinct()
+        filters = [
+        {
+            "name": "category__id",
+            "type": "list",
+            "faName": "دسته بندی",
+            "items": category_items
+        #     [
+        #         { "name": "joma", "faName": "جوما", "value": "4" },
+        #         { "name": "adidas", "faName": "آدیداس", "value": "3" },
+        #         { "name": "nike", "faName": "نایک", "value": "2" },
+        # ],
+        },
+        {
+            "name": "stock",
+            "type": "radio",
+            "faName": "فقط کالاهای موجود",
+            "items": [
+                { "name": "exist", "faName": "موجود", "value": "true" },
+                { "name": "notExist", "faName": "ناموجود", "value": "false" },
+        ],
+        },
+        {
+            "name": "sizes__id",
+            "type": "select",
+            "faName": "سایز",
+            "items": size_items
+
+        #     [
+        #         { "name": "40", "faName": "40", "value": "40" },
+        #         { "name": "41", "faName": "41", "value": "41" },
+        #         { "name": "42", "faName": "42", "value": "42" },
+        #         { "name": "43", "faName": "43", "value": "43" },
+        #         { "name": "44", "faName": "44", "value": "44" },
+        #         { "name": "45", "faName": "45", "value": "45" },
+        #         { "name": "46", "faName": "46", "value": "46" },
+        # ],
+        },
+        {
+            "name": "tags__id",
+            "type": "select",
+            "faName": "تگ",
+            "items": tag_items
+        },
+        {
+            "name": "price",
+            "type": "range",
+            "faName": "محدوده قیمت",
+            "items": [
+                { "name": "price__gt", "faName": "حداقل", "value": 0 },
+                { "name": "price__lt", "faName": "حداکثر", "value": max_price },
+        ],
+        },
+        ]
+        # sorts=[
+        # {
+        #     "name": "new",
+        #     "faName": "جدید ترین",
+        #     "value": "-new",
+        # },
+        # {
+        #     "name": "cheap",
+        #     "faName": "ارزان ترین",
+        #     "value": "price",
+        # },
+        # {
+        #     "name": "expensive",
+        #     "faName": "گران ترین",
+        #     "value": "-price",
+        # },
+        # {
+        #     "name": "popular",
+        #     "faName": "پربازدید ترین",
+        #     "value": "-rate",
+        # },
+        #  ]
+        response = super().list(request, *args, **kwargs)
+        response.data['filters'] = filters
+        # response.data['sorts'] = sorts
+        return response
         
 class ProductImageViewset(viewsets.ModelViewSet):
     queryset = ProductImage.objects.all()

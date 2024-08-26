@@ -9,6 +9,14 @@ class SimpleUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id','username']
 
+
+
+class SimpleCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id','name']
+
+
 class CategorySerializer(serializers.ModelSerializer):
     # parent = serializers.StringRelatedField()
     class Meta:

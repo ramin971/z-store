@@ -11,7 +11,7 @@ class ProductFilter(FilterSet):
     class Meta:
         model = Product
         fields = {
-            'category_id':['exact'],
+            'category__id':['exact'],
             'price':['gt','lt'],
             'sizes__id':['exact'], 
             'tags__id':['exact'],
