@@ -140,31 +140,31 @@ class ProductViewSet(viewsets.ModelViewSet):
         ],
         },
         ]
-        # sorts=[
-        # {
-        #     "name": "new",
-        #     "faName": "جدید ترین",
-        #     "value": "-new",
-        # },
-        # {
-        #     "name": "cheap",
-        #     "faName": "ارزان ترین",
-        #     "value": "price",
-        # },
-        # {
-        #     "name": "expensive",
-        #     "faName": "گران ترین",
-        #     "value": "-price",
-        # },
-        # {
-        #     "name": "popular",
-        #     "faName": "پربازدید ترین",
-        #     "value": "-rate",
-        # },
-        #  ]
+        sorts=[
+        {
+            "name": "new",
+            "faName": "جدید ترین",
+            "value": "-created",
+        },
+        {
+            "name": "cheap",
+            "faName": "ارزان ترین",
+            "value": "price",
+        },
+        {
+            "name": "expensive",
+            "faName": "گران ترین",
+            "value": "-price",
+        },
+        {
+            "name": "popular",
+            "faName": "پربازدید ترین",
+            "value": "-avg_rate",
+        },
+         ]
         response = super().list(request, *args, **kwargs)
         response.data['filters'] = filters
-        # response.data['sorts'] = sorts
+        response.data['sorts'] = sorts
         return response
         
 class ProductImageViewset(viewsets.ModelViewSet):
