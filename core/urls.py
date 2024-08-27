@@ -3,21 +3,8 @@ from rest_framework.routers import DefaultRouter
 from .views import CategoryViewSet,TagViewSet,DescriptionViewSet,SizeViewSet\
                     ,ProductViewSet,RatingProduct,CommentViewSet,ReactionViewSet
 
-# from rest_framework import permissions
-# from drf_yasg.views import get_schema_view
-# from drf_yasg import openapi
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
-# schema_view = get_schema_view(
-#    openapi.Info(
-#       title="My Project API",
-#       default_version='v1',
-#       description="API documentation for My Project",
-#       license=openapi.License(name="BSD License"),
-#    ),
-#    public=True,
-#    permission_classes=(permissions.AllowAny,),
-# )
 
 
 router = DefaultRouter()

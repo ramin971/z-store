@@ -3,11 +3,7 @@ from .models import Product
 
 
 class ProductFilter(FilterSet):
-    
     stock = BooleanFilter(field_name='stock',method='filter_stock')
-    # size = CharFilter(label='size',method='custom_size')
-    # price = RangeFilter(method='custom_price',label='price_range')
-
     class Meta:
         model = Product
         fields = {
@@ -19,7 +15,6 @@ class ProductFilter(FilterSet):
         }
 
     def filter_stock(self,queryset,name,value):
-        # print('#value',value,'#name',name)
         if value:
             lookup = '__'.join([name, 'gt'])
             return queryset.filter(**{lookup: 0})

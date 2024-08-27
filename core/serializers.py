@@ -79,9 +79,6 @@ class DetailProductSerializer(SimpleProductSerializer):
 
 class ProductSerialzier(serializers.ModelSerializer):
     images = serializers.ListField(child=serializers.ImageField(),write_only=True)
-    # category = serializers.StringRelatedField()
-    # size = serializers.StringRelatedField(many=True,read_only=True,source='sizes')
-    # tag = serializers.StringRelatedField(many=True,read_only=True,source='tags')
     class Meta:
         model = Product
         fields = ['id','name','category','images','price','stock','description','tags','sizes']

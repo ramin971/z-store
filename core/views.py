@@ -30,12 +30,6 @@ class TagViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
 
-# class DescriptionViewSet(viewsets.ModelViewSet):
-    ##  Block list method ------------
-    # def list(self, request, *args, **kwargs):
-    #     raise MethodNotAllowed("GET")
-
-# Block list method --------------
 class DescriptionViewSet(mixins.CreateModelMixin,
                         mixins.RetrieveModelMixin, 
                         mixins.UpdateModelMixin,
@@ -71,9 +65,6 @@ class ProductViewSet(viewsets.ModelViewSet):
             return DetailProductSerializer
         
     
-    # def get_queryset(self):
-    #     query = Product.objects.prefetch_related('size','tag','images').select_related('category','description').annotate(avg_rate=Avg('rates__rate'))
-    #     return query
 
     def list(self, request, *args, **kwargs):
         max_price=self.queryset.aggregate(max_price=Max('price'))['max_price']
@@ -93,11 +84,6 @@ class ProductViewSet(viewsets.ModelViewSet):
             "type": "list",
             "faName": "دسته بندی",
             "items": category_items
-        #     [
-        #         { "name": "joma", "faName": "جوما", "value": "4" },
-        #         { "name": "adidas", "faName": "آدیداس", "value": "3" },
-        #         { "name": "nike", "faName": "نایک", "value": "2" },
-        # ],
         },
         {
             "name": "stock",
@@ -106,23 +92,13 @@ class ProductViewSet(viewsets.ModelViewSet):
             "items": [
                 { "name": "exist", "faName": "موجود", "value": "true" },
                 { "name": "notExist", "faName": "ناموجود", "value": "false" },
-        ],
+                ],
         },
         {
             "name": "sizes__id",
             "type": "select",
             "faName": "سایز",
             "items": size_items
-
-        #     [
-        #         { "name": "40", "faName": "40", "value": "40" },
-        #         { "name": "41", "faName": "41", "value": "41" },
-        #         { "name": "42", "faName": "42", "value": "42" },
-        #         { "name": "43", "faName": "43", "value": "43" },
-        #         { "name": "44", "faName": "44", "value": "44" },
-        #         { "name": "45", "faName": "45", "value": "45" },
-        #         { "name": "46", "faName": "46", "value": "46" },
-        # ],
         },
         {
             "name": "tags__id",
@@ -137,7 +113,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             "items": [
                 { "name": "price__gt", "faName": "حداقل", "value": 0 },
                 { "name": "price__lt", "faName": "حداکثر", "value": max_price },
-        ],
+                ],
         },
         ]
         sorts=[
@@ -161,7 +137,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             "faName": "پربازدید ترین",
             "value": "-avg_rate",
         },
-         ]
+        ]
         response = super().list(request, *args, **kwargs)
         response.data['filters'] = filters
         response.data['sorts'] = sorts
@@ -201,7 +177,6 @@ class CommentViewSet(viewsets.ModelViewSet):
     #                 dislikes=Count(Case(When(reactions__reaction_type='D', then=1),output_field=IntegerField(),)))
 
 
-    # serializer_class = CommentSerializer
     pagination_class = CustomPagination
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -211,10 +186,6 @@ class CommentViewSet(viewsets.ModelViewSet):
         else:
             return CommentSerializer
 
-    # def get_queryset(self):
-    #     print('pk****: ',self.kwargs)
-    #     print('user',self.request.user)
-    #     return Comment.objects.filter(product=self.kwargs['pk'],parent__isnull=True)
     def get_serializer_context(self):
         return {'user':self.request.user}
     
