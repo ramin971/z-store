@@ -16,7 +16,8 @@ from .serializers import CategorySerializer,TagSerializer\
                                 ,SimpleCategorySerializer
                         
 from django.db.models import Avg,Count,Case,When,IntegerField,Q,Max
-
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -65,7 +66,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             return DetailProductSerializer
         
     
-
+    @method_decorator(cache_page(3600*24))
     def list(self, request, *args, **kwargs):
         max_price=self.queryset.aggregate(max_price=Max('price'))['max_price']
         category = Category.objects.only('name','id')
