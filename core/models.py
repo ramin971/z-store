@@ -3,7 +3,7 @@ from django.core.validators import MaxValueValidator,MinValueValidator,RegexVali
 from django.conf import settings
 from rest_framework.exceptions import NotAcceptable
 from uuid import uuid4
-
+import datetime
 # ---------------Category--------------------------------------------------------------------------------
 class Category(models.Model):
     name = models.CharField(max_length=50,unique=True)
@@ -156,24 +156,24 @@ class Cart(models.Model):
         if not self.payment:
             print('###payment is false')
             try:
-                temp_basket = Basket.objects.get(customer=self.customer,payment=False)
-            except Basket.DoesNotExist:
+                temp_basket = Cart.objects.get(customer=self.customer,payment=False)
+            except Cart.DoesNotExist:
                 print('######basket doesnot exist therefor create')
-                return super(Basket,self).save(*args,**kwargs)
+                return super(Cart,self).save(*args,**kwargs)
                 # raise NotAcceptable('Temporary Basket is already available')
-            except Basket.MultipleObjectsReturned:
+            except Cart.MultipleObjectsReturned:
                 raise NotAcceptable('extra temprary basket')
             
             # temp_basket = Basket.objects.filter(user=self.user,payment=False)
             if self !=  temp_basket:
                 print('pay=t , temp=e , self =! temp')
                 raise NotAcceptable('Temporary Basket is already available')
-            return super(Basket,self).save(*args,**kwargs)
+            return super(Cart,self).save(*args,**kwargs)
         else:
             if self.ordered_date is None:
                 print('***fill ordered_date...')
                 self.ordered_date = datetime.datetime.now()
-        return super(Basket,self).save(*args,**kwargs)
+        return super(Cart,self).save(*args,**kwargs)
 
 class OrderItem(models.Model):
     customer = models.ForeignKey(Customer,on_delete=models.CASCADE,related_name='order_items')

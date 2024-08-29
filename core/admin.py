@@ -96,6 +96,34 @@ class CommentAdmin(admin.ModelAdmin):
     list_select_related = ['product','user']
 
 
+@admin.register(models.OrderItem)
+class OrderItemAdmin(admin.ModelAdmin):
+    list_display = ['customer','product','quantity','cart']
+
+class OrderItemInline(admin.TabularInline):
+    autocomplete_fields = ['product']
+    model = models.OrderItem
+    extra = 1
+    readonly_fields = ['customer']
+    
+
+@admin.register(models.Cart)
+class BasketAdmin(admin.ModelAdmin):
+    list_display = ['customer','payment','get_total_price','status','ordered_date']
+    ordering = ['payment','status','-ordered_date']
+    search_fields = ['customer','id']
+    readonly_fields = ['id','customer','payment','get_total_price','coupon','ordered_date']
+    list_filter = ['payment','status','ordered_date']
+    radio_fields = {'status':admin.HORIZONTAL}
+    list_editable = ['status']
+    list_select_related = ['customer','coupon']
+    inlines = [OrderItemInline]
+    list_per_page = 10
+
+@admin.register(models.Customer)
+class CustomerAdmin(admin.ModelAdmin):
+    list_display = ['full_name','national_code','postal_code','mobile','address']
+    readonly_fields = ['full_name','national_code','postal_code','mobile','address']
 
 admin.site.register(models.Description)
 admin.site.register(models.Rating)

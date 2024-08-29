@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Category,Tag,Description,Size,Product,ProductImage,Rating,Comment,Reaction
+from .models import Category,Tag,Description,Size,Product,ProductImage,Rating,\
+                Comment,Reaction,Coupon,Cart,OrderItem,Customer
 from django.conf import settings
 from auth_app.models import User
 
@@ -216,3 +217,22 @@ class CommentSerializer(serializers.ModelSerializer):
 #         return serializer.data
 
 
+# cart-----------------------------------------------------------------
+
+class CouponSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Coupon
+        fields = ['id','code','amount']
+
+
+class CustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Customer
+        fields = ['user','full_name','mobile','address','national_code','postal_code']
+        read_only_fields = ['user']
+
+
+    def create(self, validated_data):
+        user = self.context.get('user')
+        validated_data['user'] = user
+        return super().create(validated_data)

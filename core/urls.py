@@ -1,9 +1,11 @@
 from django.urls import path,include
 from rest_framework.routers import DefaultRouter
 from .views import CategoryViewSet,TagViewSet,DescriptionViewSet,SizeViewSet\
-                    ,ProductViewSet,RatingProduct,CommentViewSet,ReactionViewSet
+                    ,ProductViewSet,RatingProduct,CommentViewSet,ReactionViewSet\
+                    ,CouponViewSet,CustomerViewSet
 
-from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
+from drf_spectacular.views import SpectacularAPIView,SpectacularRedocView\
+                                ,SpectacularSwaggerView
 
 
 
@@ -16,6 +18,9 @@ router.register(r'product', ProductViewSet)
 router.register(r'rating',RatingProduct)
 router.register(r'comment',CommentViewSet,basename='comment')
 router.register(r'reactions',ReactionViewSet)
+router.register(r'coupon',CouponViewSet)
+router.register(r'customer',CustomerViewSet)
+
 
 
 

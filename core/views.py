@@ -1,19 +1,19 @@
 from rest_framework import viewsets,mixins,generics,status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticatedOrReadOnly,IsAuthenticated
+from rest_framework.permissions import IsAuthenticatedOrReadOnly,IsAuthenticated,IsAdminUser
 from rest_framework.exceptions import ParseError
 from rest_framework.filters import SearchFilter,OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
+from .permissions import IsAdminOrIsAuthenticated
 from .paginations import CustomPagination
 from .filters import ProductFilter
-from .models import Category,Tag,Description,Size,Product\
-                    ,ProductImage,Rating,Comment,Reaction
-from .serializers import CategorySerializer,TagSerializer\
-                        ,DescriptionSerializer,SizeSerializer,ProductSerialzier\
-                        ,RatingSerializer,CommentSerializer,SimpleCommentSerializer\
-                            ,SimpleProductSerializer,DetailProductSerializer\
-                                ,ProductImageSerializer,ReactionSerializer\
-                                ,SimpleCategorySerializer
+from .models import Category,Tag,Description,Size,Product,Customer\
+                    ,ProductImage,Rating,Comment,Reaction,Coupon,Cart,OrderItem
+from .serializers import CategorySerializer,TagSerializer,SizeSerializer\
+                        ,DescriptionSerializer,ProductSerialzier,RatingSerializer\
+                        ,CommentSerializer,SimpleCommentSerializer,ProductImageSerializer\
+                        ,SimpleProductSerializer,DetailProductSerializer,ReactionSerializer\
+                        ,SimpleCategorySerializer,CouponSerializer,CustomerSerializer
                         
 from django.db.models import Avg,Count,Case,When,IntegerField,Q,Max
 from django.utils.decorators import method_decorator
@@ -220,3 +220,17 @@ class ReactionViewSet(viewsets.ModelViewSet):
     def get_serializer_context(self):
         return {'user':self.request.user}
   
+# Cart--------------------------------------------------------------------------
+
+class CouponViewSet(viewsets.ModelViewSet):
+    queryset = Coupon.objects.all()
+    serializer_class = CouponSerializer
+    permission_classes = [IsAdminUser]
+
+class CustomerViewSet(viewsets.ModelViewSet):
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
+    permission_classes = [IsAdminOrIsAuthenticated]
+
+    def get_serializer_context(self):
+        return {'user':self.request.user}
