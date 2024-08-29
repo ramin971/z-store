@@ -1,7 +1,9 @@
 from django.db import models
-from django.core.validators import MaxValueValidator,MinValueValidator
+from django.core.validators import MaxValueValidator,MinValueValidator,RegexValidator
 from django.conf import settings
 from rest_framework.exceptions import NotAcceptable
+from uuid import uuid4
+
 # ---------------Category--------------------------------------------------------------------------------
 class Category(models.Model):
     name = models.CharField(max_length=50,unique=True)
@@ -106,14 +108,84 @@ class Reaction(models.Model):
 
 # ---------------Cart--------------------------------------------------------------------------------
 class Coupon(models.Model):
-    pass
+    code = models.CharField(max_length=25,unique=True)
+    amount = models.PositiveSmallIntegerField()
 
-class ReceiverInfo(models.Model):
-    #user
-    pass
+    def __str__(self):
+        return self.code
+
+
+class Customer(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,primary_key=True)
+    full_name = models.CharField(max_length=50)
+    national_code = models.CharField(null=True,blank=True,validators=[RegexValidator(regex='^\d{10}$',message='must be 10 \
+        digit',code='invalid_national_code')],max_length=10)
+    mobile = models.CharField(validators=[RegexValidator(regex='^[0][9][0-9]{9}$',message='phone number\
+         invalid',code='invalid_phone')],max_length=11,unique=True)
+    address = models.TextField()
+    postal_code = models.CharField(null=True,blank=True,validators=[RegexValidator(regex='^\d{10}$',message='must be 10 \
+        digit',code='invalid_postal_code')],max_length=10)
+
 
 class Cart(models.Model):
-    pass
+    STATUS_CHOICES = (('u','Unpaid'),('q','Queue'),('p','Providing'),('s','Sent'))
+    id = models.UUIDField(primary_key=True,default=uuid4,unique=True,editable=False)
+    customer = models.ForeignKey(Customer,on_delete=models.CASCADE,related_name='carts')
+    ordered_date = models.DateTimeField(null=True,editable=False)
+    payment = models.BooleanField(default=False)
+    customer = models.ForeignKey(Customer,on_delete=models.PROTECT,related_name='carts')
+    status = models.CharField(max_length=1,choices=STATUS_CHOICES,default='u')
+    coupon = models.ForeignKey(Coupon,on_delete=models.SET_NULL,null=True,blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['customer','coupon'],name='unique_coupon')
+        ]
+    def __str__(self):
+        return f'{self.customer.full_name},{self.id}'
+
+    def get_total_price(self):
+        total = 0
+        for order_item in self.order_items.all():
+            total += order_item.get_total_product_price()
+            if self.coupon:
+                total = total - (self.coupon.amount * total // 100)
+        return total
+
+    def save(self,*args,**kwargs):
+        if not self.payment:
+            print('###payment is false')
+            try:
+                temp_basket = Basket.objects.get(customer=self.customer,payment=False)
+            except Basket.DoesNotExist:
+                print('######basket doesnot exist therefor create')
+                return super(Basket,self).save(*args,**kwargs)
+                # raise NotAcceptable('Temporary Basket is already available')
+            except Basket.MultipleObjectsReturned:
+                raise NotAcceptable('extra temprary basket')
+            
+            # temp_basket = Basket.objects.filter(user=self.user,payment=False)
+            if self !=  temp_basket:
+                print('pay=t , temp=e , self =! temp')
+                raise NotAcceptable('Temporary Basket is already available')
+            return super(Basket,self).save(*args,**kwargs)
+        else:
+            if self.ordered_date is None:
+                print('***fill ordered_date...')
+                self.ordered_date = datetime.datetime.now()
+        return super(Basket,self).save(*args,**kwargs)
 
 class OrderItem(models.Model):
-    pass
+    customer = models.ForeignKey(Customer,on_delete=models.CASCADE,related_name='order_items')
+    product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name='order_items')
+    quantity = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+    cart = models.ForeignKey(Cart,on_delete=models.CASCADE,related_name='order_items')
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['cart','product'],name='unique_product')
+        ]
+
+    def get_total_product_price(self):
+        price = self.product.price
+        return price * self.quantity

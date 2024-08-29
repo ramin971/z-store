@@ -46,7 +46,6 @@ class SizeViewSet(viewsets.ModelViewSet):
     serializer_class = SizeSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
-
     
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.prefetch_related('sizes','tags','images').select_related('category','description').annotate(avg_rate=Avg('rates__rate'))
@@ -55,6 +54,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend,SearchFilter,OrderingFilter]
     filterset_class = ProductFilter
     search_fields = ['name']
+    
     ordering_fields = ['created','price','avg_rate']
 
     def get_serializer_class(self):
