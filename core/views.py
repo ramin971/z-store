@@ -2,6 +2,7 @@ from rest_framework import viewsets,mixins,generics,status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly,IsAuthenticated,IsAdminUser
 from rest_framework.exceptions import ParseError
+from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter,OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .permissions import IsAdminOrIsAuthenticated
@@ -18,6 +19,7 @@ from .serializers import CategorySerializer,TagSerializer,SizeSerializer\
 from django.db.models import Avg,Count,Case,When,IntegerField,Q,Max
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from django.shortcuts import get_object_or_404
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -234,3 +236,17 @@ class CustomerViewSet(viewsets.ModelViewSet):
 
     def get_serializer_context(self):
         return {'user':self.request.user}
+
+    @action(detail=False,methods=['GET','PUT','PATCH'])
+    def me(self,request):
+        customer = get_object_or_404(Customer,user=request.user)
+        if request.method == 'GET':
+            serializer = CustomerSerializer(customer)
+            return Response(serializer.data,status=status.HTTP_200_OK)
+        elif request.method in ['PUT','PATCH']:
+            serializer = CustomerSerializer(customer,data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+
+
