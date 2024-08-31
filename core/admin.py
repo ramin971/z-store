@@ -108,8 +108,8 @@ class OrderItemInline(admin.TabularInline):
     
 
 @admin.register(models.Cart)
-class BasketAdmin(admin.ModelAdmin):
-    list_display = ['customer','payment','get_total_price','status','ordered_date']
+class CartAdmin(admin.ModelAdmin):
+    list_display = ['id','customer','payment','get_total_price','status','ordered_date']
     ordering = ['payment','status','-ordered_date']
     search_fields = ['customer','id']
     readonly_fields = ['id','customer','payment','get_total_price','coupon','ordered_date']
@@ -119,10 +119,11 @@ class BasketAdmin(admin.ModelAdmin):
     list_select_related = ['customer','coupon']
     inlines = [OrderItemInline]
     list_per_page = 10
+    
 
 @admin.register(models.Customer)
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ['full_name','national_code','postal_code','mobile','address']
+    list_display = ['full_name','mobile','address','national_code','postal_code']
     readonly_fields = ['full_name','national_code','postal_code','mobile','address']
 
 admin.site.register(models.Description)

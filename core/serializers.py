@@ -137,10 +137,15 @@ class RatingSerializer(serializers.ModelSerializer):
         fields = ['id','product','user','rate']
         read_only_fields=['id','user']
 
-    def create(self, validated_data):
+    def validate(self, attrs):
         user = self.context.get('user')
-        validated_data['user'] = user
-        return super().create(validated_data)
+        attrs['user'] = user
+        return super().validate(attrs)
+
+    # def create(self, validated_data):
+    #     user = self.context.get('user')
+    #     validated_data['user'] = user
+    #     return super().create(validated_data)
     
 
 
@@ -150,11 +155,16 @@ class ReactionSerializer(serializers.ModelSerializer):
         fields = ['id','user','comment','reaction_type']
         read_only_fields = ['id','user']
         # extra_kwargs={'comment':{'write_only':True}}
-        
-    def create(self, validated_data):
+
+    def validate(self, attrs):
         user = self.context.get('user')
-        validated_data['user'] = user
-        return super().create(validated_data)
+        attrs['user'] = user
+        return super().validate(attrs)
+        
+    # def create(self, validated_data):
+    #     user = self.context.get('user')
+    #     validated_data['user'] = user
+    #     return super().create(validated_data)
 
 class SimpleCommentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -162,10 +172,15 @@ class SimpleCommentSerializer(serializers.ModelSerializer):
         fields = ['id','user','text','product']
         read_only_fields = ['id','user']
 
-    def create(self, validated_data):
+    def validate(self, attrs):
         user = self.context.get('user')
-        validated_data['user'] = user
-        return super().create(validated_data)
+        attrs['user'] = user
+        return super().validate(attrs)
+
+    # def create(self, validated_data):
+    #     user = self.context.get('user')
+    #     validated_data['user'] = user
+    #     return super().create(validated_data)
 
 
 
@@ -231,8 +246,62 @@ class CustomerSerializer(serializers.ModelSerializer):
         fields = ['user','full_name','mobile','address','national_code','postal_code']
         read_only_fields = ['user']
 
+    def validate(self, attrs):
+        user = self.context.get('user')
+        attrs['user'] = user
+        return super().validate(attrs)
+    # def create(self, validated_data):
+    #     user = self.context.get('user')
+    #     validated_data['user'] = user
+    #     return super().create(validated_data)
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderItem
+        fields = ['id','customer','product','quantity','cart','get_total_product_price']
+        read_only_fields = ['id','customer','cart','get_total_product_price']
+
+    def validate(self, attrs):
+        customer = self.context.get('user').customer
+        attrs['customer'] = customer
+        cart,created = Cart.objects.get_or_create(customer=customer,payment=False)
+        print('$$$$$$$$$$$$$$created cart?',created)
+        attrs['cart']=cart
+        return super().validate(attrs)
 
     def create(self, validated_data):
-        user = self.context.get('user')
-        validated_data['user'] = user
-        return super().create(validated_data)
+        try:
+            order_item = OrderItem.objects.get(cart=validated_data['cart'],product=validated_data['product'])
+            order_item.quantity += validated_data['quantity']
+            order_item.save()
+            print('1')
+            print('########not created')
+            return order_item
+        except OrderItem.DoesNotExist:
+            print('2')
+            return super().create(validated_data)
+
+class CartProductSerializer(SimpleProductSerializer):
+    class Meta(SimpleProductSerializer.Meta):
+        fields = ['id','name','images','price','sizes']
+   
+class SimpleOrderItemSerializer(serializers.ModelSerializer):
+    product = CartProductSerializer(read_only=True)
+    class Meta:
+        model = OrderItem
+        fields = ['id','customer','product','quantity','get_total_product_price']
+        read_only_fields = ['id','customer','get_total_product_price']
+    
+    
+
+class CartSerializer(serializers.ModelSerializer):
+    order_items= SimpleOrderItemSerializer(many=True,read_only=True)
+    class Meta:
+        model = Cart
+        fields =['id','ordered_date','payment','customer','order_items','coupon','get_total_price','status']
+        read_only_fields = ['id','ordered_date','payment','customer','status','coupon','get_total_price']
+
+    def validate(self, attrs):
+        customer = self.context.get('user').customer
+        attrs['customer'] = customer
+        return super().validate(attrs)

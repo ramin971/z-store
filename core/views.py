@@ -14,7 +14,8 @@ from .serializers import CategorySerializer,TagSerializer,SizeSerializer\
                         ,DescriptionSerializer,ProductSerialzier,RatingSerializer\
                         ,CommentSerializer,SimpleCommentSerializer,ProductImageSerializer\
                         ,SimpleProductSerializer,DetailProductSerializer,ReactionSerializer\
-                        ,SimpleCategorySerializer,CouponSerializer,CustomerSerializer
+                        ,SimpleCategorySerializer,CouponSerializer,CustomerSerializer\
+                        ,OrderItemSerializer,CartSerializer,CartProductSerializer
                         
 from django.db.models import Avg,Count,Case,When,IntegerField,Q,Max
 from django.utils.decorators import method_decorator
@@ -249,4 +250,22 @@ class CustomerViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(serializer.data)
 
+
+class OrderItemViewSet(viewsets.ModelViewSet):
+    queryset = OrderItem.objects.select_related('product','customer','cart')
+    serializer_class = OrderItemSerializer
+    permission_classes = [IsAuthenticated]
+    # def get_queryset(self):
+    #     return OrderItem.objects.select_related('product','customer','cart').filter(customer=self.request.user.customer)
+    def get_serializer_context(self):
+        return {'user':self.request.user}
+    
+class CartViewSet(viewsets.ModelViewSet):
+    serializer_class = CartSerializer
+    permission_classes = [IsAuthenticated]
+    def get_queryset(self):
+        return Cart.objects.filter(customer=self.request.user.id).prefetch_related('order_items__product','order_items__product__images','order_items__product__sizes')
+    def get_serializer_context(self):
+        return {'user':self.request.user,'request':self.request}
+    
 

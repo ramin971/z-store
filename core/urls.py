@@ -2,7 +2,7 @@ from django.urls import path,include
 from rest_framework.routers import DefaultRouter
 from .views import CategoryViewSet,TagViewSet,DescriptionViewSet,SizeViewSet\
                     ,ProductViewSet,RatingProduct,CommentViewSet,ReactionViewSet\
-                    ,CouponViewSet,CustomerViewSet
+                    ,CouponViewSet,CustomerViewSet,OrderItemViewSet,CartViewSet
 
 from drf_spectacular.views import SpectacularAPIView,SpectacularRedocView\
                                 ,SpectacularSwaggerView
@@ -20,6 +20,10 @@ router.register(r'comment',CommentViewSet,basename='comment')
 router.register(r'reactions',ReactionViewSet)
 router.register(r'coupon',CouponViewSet)
 router.register(r'customer',CustomerViewSet)
+router.register(r'order',OrderItemViewSet)
+router.register(r'cart',CartViewSet,basename='cart')
+
+
 
 
 

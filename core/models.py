@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.core.validators import MaxValueValidator,MinValueValidator,RegexValidator
 from django.conf import settings
 from rest_framework.exceptions import NotAcceptable
@@ -126,23 +127,26 @@ class Customer(models.Model):
     postal_code = models.CharField(null=True,blank=True,validators=[RegexValidator(regex='^\d{10}$',message='must be 10 \
         digit',code='invalid_postal_code')],max_length=10)
 
+    def __str__(self) -> str:
+        return self.full_name
 
 class Cart(models.Model):
     STATUS_CHOICES = (('u','Unpaid'),('q','Queue'),('p','Providing'),('s','Sent'))
     id = models.UUIDField(primary_key=True,default=uuid4,unique=True,editable=False)
-    customer = models.ForeignKey(Customer,on_delete=models.CASCADE,related_name='carts')
+    # customer = models.ForeignKey(Customer,on_delete=models.CASCADE,related_name='carts')
     ordered_date = models.DateTimeField(null=True,editable=False)
     payment = models.BooleanField(default=False)
-    customer = models.ForeignKey(Customer,on_delete=models.PROTECT,related_name='carts')
+    customer = models.ForeignKey(Customer,on_delete=models.SET_NULL,null=True,related_name='carts')
     status = models.CharField(max_length=1,choices=STATUS_CHOICES,default='u')
     coupon = models.ForeignKey(Coupon,on_delete=models.SET_NULL,null=True,blank=True)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['customer','coupon'],name='unique_coupon')
+            models.UniqueConstraint(fields=['customer','coupon'],name='unique_coupon'),
+            models.UniqueConstraint(fields=['customer','payment'],condition=Q(payment=False),name='unique_temp_cart')
         ]
     def __str__(self):
-        return f'{self.customer.full_name},{self.id}'
+        return f'{self.id}'
 
     def get_total_price(self):
         total = 0
@@ -156,18 +160,19 @@ class Cart(models.Model):
         if not self.payment:
             print('###payment is false')
             try:
+                #  what happend if customer=null-----------------------------------------------------
                 temp_basket = Cart.objects.get(customer=self.customer,payment=False)
             except Cart.DoesNotExist:
-                print('######basket doesnot exist therefor create')
+                print('######Cart doesnot exist therefor create')
                 return super(Cart,self).save(*args,**kwargs)
                 # raise NotAcceptable('Temporary Basket is already available')
             except Cart.MultipleObjectsReturned:
-                raise NotAcceptable('extra temprary basket')
+                raise NotAcceptable('extra temprary Cart')
             
             # temp_basket = Basket.objects.filter(user=self.user,payment=False)
             if self !=  temp_basket:
                 print('pay=t , temp=e , self =! temp')
-                raise NotAcceptable('Temporary Basket is already available')
+                raise NotAcceptable('Temporary Cart is already available')
             return super(Cart,self).save(*args,**kwargs)
         else:
             if self.ordered_date is None:
@@ -176,7 +181,7 @@ class Cart(models.Model):
         return super(Cart,self).save(*args,**kwargs)
 
 class OrderItem(models.Model):
-    customer = models.ForeignKey(Customer,on_delete=models.CASCADE,related_name='order_items')
+    customer = models.ForeignKey(Customer,on_delete=models.SET_NULL,null=True,related_name='order_items')
     product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name='order_items')
     quantity = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
     cart = models.ForeignKey(Cart,on_delete=models.CASCADE,related_name='order_items')
