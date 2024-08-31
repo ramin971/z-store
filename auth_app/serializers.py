@@ -18,6 +18,7 @@ class TokenRefreshSerializer(BaseTokenRefreshSerializer):
     refresh = None
     def validate(self, attrs):
         attrs['refresh'] = self.context['request'].COOKIES.get('refresh_token')
+        print('****',self.context['request'].COOKIES)
         if attrs['refresh']:
             return super().validate(attrs)
         raise InvalidToken
