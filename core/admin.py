@@ -34,23 +34,23 @@ class ProductImageInline(admin.TabularInline):
 #     extra = 1
     
 # use filter horizontal instead ----------------
-# class SizeInline(admin.TabularInline):
-#     model = models.Product.sizes.through
-#     extra = 1
+class SizeInline(admin.TabularInline):
+    model = models.Size
+    extra = 1
 
 
 @admin.register(models.Product)
 class ProductAdmin(admin.ModelAdmin):
     autocomplete_fields = ['category']
-    filter_horizontal = ['sizes','tags']
+    filter_horizontal = ['tags']
     list_select_related = ['category','category__parent']
-    list_display = ['id','name','rate','category','price','stock','size','tag','update']
+    list_display = ['id','name','rate','category','price','size','tag','update']
     prepopulated_fields = {'slug':('name',)}
     ordering = ['-updated']
     list_per_page = 10
     search_fields = ['name','category__istartswith']
     list_filter = ['category','updated']
-    inlines = [ProductImageInline]
+    inlines = [ProductImageInline,SizeInline]
 
     def get_queryset(self, request):
         return super().get_queryset(request).annotate(rate=Avg('rates__rate'))
@@ -59,7 +59,9 @@ class ProductAdmin(admin.ModelAdmin):
     def size(self,instance):
         # return ','.join([str(i.value) for i in instance.sizes.all()])
         # return [size.value for size in instance.sizes.all()]
-        return list(instance.sizes.all().values_list('value',flat=True))
+        # return (a,b) for a , b in list(instance.sizes.all().values_list('value',flat=True))
+        return list(f'{v}->{s}' for v,s in instance.sizes.values_list('value','stock'))
+
 
     def tag(self,instance):
         # return ",".join([p.value for p in instance.sizes.all()])
@@ -82,7 +84,7 @@ class ProductImageAdmin(admin.ModelAdmin):
 
 @admin.register(models.Size)
 class SizeAdmin(admin.ModelAdmin):
-    list_display = ['value']
+    list_display = ['product','value','stock']
     search_fields = ['value']
 
 @admin.register(models.Tag)
@@ -98,21 +100,21 @@ class CommentAdmin(admin.ModelAdmin):
 
 @admin.register(models.OrderItem)
 class OrderItemAdmin(admin.ModelAdmin):
-    list_display = ['customer','product','quantity','cart']
+    list_display = ['user','product','quantity','cart']
 
 class OrderItemInline(admin.TabularInline):
     autocomplete_fields = ['product']
     model = models.OrderItem
     extra = 1
-    readonly_fields = ['customer']
+    readonly_fields = ['user']
     
 
 @admin.register(models.Cart)
 class CartAdmin(admin.ModelAdmin):
-    list_display = ['id','customer','payment','get_total_price','status','ordered_date']
+    list_display = ['id','user','customer','payment','get_total_price','status','ordered_date']
     ordering = ['payment','status','-ordered_date']
     search_fields = ['customer','id']
-    readonly_fields = ['id','customer','payment','get_total_price','coupon','ordered_date']
+    readonly_fields = ['id','user','customer','payment','get_total_price','coupon','ordered_date']
     list_filter = ['payment','status','ordered_date']
     radio_fields = {'status':admin.HORIZONTAL}
     list_editable = ['status']
@@ -123,15 +125,15 @@ class CartAdmin(admin.ModelAdmin):
 
 @admin.register(models.Customer)
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ['full_name','mobile','address','national_code','postal_code']
-    readonly_fields = ['full_name','national_code','postal_code','mobile','address']
+    list_display = ['full_name','user','mobile','address','national_code','postal_code']
+    readonly_fields = ['full_name','user','national_code','postal_code','mobile','address']
 
 admin.site.register(models.Description)
 admin.site.register(models.Rating)
 admin.site.register(models.Reaction)
+admin.site.register(models.Coupon)
 
 
 # admin.site.register(models.Cart)
-# admin.site.register(models.Coupon)
 # admin.site.register(models.OrderItem)
 # admin.site.register(models.ReceiverInfo)

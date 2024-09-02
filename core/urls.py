@@ -20,7 +20,7 @@ router.register(r'comment',CommentViewSet,basename='comment')
 router.register(r'reactions',ReactionViewSet)
 router.register(r'coupon',CouponViewSet)
 router.register(r'customer',CustomerViewSet)
-router.register(r'order',OrderItemViewSet)
+router.register(r'order',OrderItemViewSet,basename='order')
 router.register(r'cart',CartViewSet,basename='cart')
 
 

@@ -1,3 +1,4 @@
+from typing import Iterable
 from django.db import models
 from django.db.models import Q
 from django.core.validators import MaxValueValidator,MinValueValidator,RegexValidator
@@ -38,10 +39,7 @@ class Description(models.Model):
     text = models.TextField()
 
 
-class Size(models.Model):
-    value = models.CharField(max_length=20,unique=True)
-    def __str__(self) -> str:
-        return self.value
+
 
 # ---------------Product--------------------------------------------------------------------------------
 class Product(models.Model):
@@ -49,15 +47,30 @@ class Product(models.Model):
     slug = models.SlugField()
     category = models.ForeignKey(Category,on_delete=models.PROTECT,related_name='products')
     description = models.ForeignKey(Description,on_delete=models.SET_NULL,null=True,blank=True)
-    sizes = models.ManyToManyField(Size,related_name='products')
+    # sizes = models.ManyToManyField(Size,related_name='products')
     tags = models.ManyToManyField(Tag,blank=True,related_name='products')
     price = models.PositiveIntegerField()
-    stock = models.PositiveSmallIntegerField(validators=[MinValueValidator(0)])
+    # stock = models.PositiveSmallIntegerField(validators=[MinValueValidator(0)])
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     
     def __str__(self) -> str:
         return f'{self.name}'
+
+
+class Size(models.Model):
+    product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name='sizes')
+    value = models.CharField(max_length=20)
+    stock = models.PositiveSmallIntegerField(validators=[MinValueValidator(0)])
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=('value','product'),name='unique_size')
+        ]
+    
+    def __str__(self) -> str:
+        return f'{self.product}-{self.value}'
+
 
 class ProductImage(models.Model):
     image = models.ImageField(upload_to='image')
@@ -117,7 +130,7 @@ class Coupon(models.Model):
 
 
 class Customer(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,primary_key=True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,null=True,blank=True,related_name='customer')
     full_name = models.CharField(max_length=50)
     national_code = models.CharField(null=True,blank=True,validators=[RegexValidator(regex='^\d{10}$',message='must be 10 \
         digit',code='invalid_national_code')],max_length=10)
@@ -131,19 +144,20 @@ class Customer(models.Model):
         return self.full_name
 
 class Cart(models.Model):
-    STATUS_CHOICES = (('u','Unpaid'),('q','Queue'),('p','Providing'),('s','Sent'))
+    STATUS_CHOICES = (('unpaid','Unpaid'),('queue','Queue'),('providing','Providing'),('sent','Sent'))
     id = models.UUIDField(primary_key=True,default=uuid4,unique=True,editable=False)
     # customer = models.ForeignKey(Customer,on_delete=models.CASCADE,related_name='carts')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name='carts')
     ordered_date = models.DateTimeField(null=True,editable=False)
     payment = models.BooleanField(default=False)
     customer = models.ForeignKey(Customer,on_delete=models.SET_NULL,null=True,related_name='carts')
-    status = models.CharField(max_length=1,choices=STATUS_CHOICES,default='u')
+    status = models.CharField(max_length=9,choices=STATUS_CHOICES,default='unpaid')
     coupon = models.ForeignKey(Coupon,on_delete=models.SET_NULL,null=True,blank=True)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['customer','coupon'],name='unique_coupon'),
-            models.UniqueConstraint(fields=['customer','payment'],condition=Q(payment=False),name='unique_temp_cart')
+            models.UniqueConstraint(fields=['user','coupon'],name='unique_coupon'),
+            models.UniqueConstraint(fields=['user','payment'],condition=Q(payment=False),name='unique_temp_cart')
         ]
     def __str__(self):
         return f'{self.id}'
@@ -161,7 +175,7 @@ class Cart(models.Model):
             print('###payment is false')
             try:
                 #  what happend if customer=null-----------------------------------------------------
-                temp_basket = Cart.objects.get(customer=self.customer,payment=False)
+                temp_cart = Cart.objects.get(user=self.user,payment=False)
             except Cart.DoesNotExist:
                 print('######Cart doesnot exist therefor create')
                 return super(Cart,self).save(*args,**kwargs)
@@ -170,8 +184,8 @@ class Cart(models.Model):
                 raise NotAcceptable('extra temprary Cart')
             
             # temp_basket = Basket.objects.filter(user=self.user,payment=False)
-            if self !=  temp_basket:
-                print('pay=t , temp=e , self =! temp')
+            if self !=  temp_cart:
+                print('pay=f , temp=e , self =! temp')
                 raise NotAcceptable('Temporary Cart is already available')
             return super(Cart,self).save(*args,**kwargs)
         else:
@@ -181,16 +195,27 @@ class Cart(models.Model):
         return super(Cart,self).save(*args,**kwargs)
 
 class OrderItem(models.Model):
-    customer = models.ForeignKey(Customer,on_delete=models.SET_NULL,null=True,related_name='order_items')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name='order_items')
     product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name='order_items')
+    size = models.ForeignKey(Size,on_delete=models.SET_NULL,null=True)
     quantity = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
     cart = models.ForeignKey(Cart,on_delete=models.CASCADE,related_name='order_items')
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['cart','product'],name='unique_product')
+            models.UniqueConstraint(fields=['cart','product','size'],name='unique_product')
         ]
 
     def get_total_product_price(self):
         price = self.product.price
         return price * self.quantity
+    
+    
+    def save(self,*args,**kwargs):
+        if self.product.sizes.all().contains(self.size):
+            if self.size.stock >= self.quantity:
+                return super(OrderItem,self).save(*args,**kwargs)
+            else:
+                raise NotAcceptable('quantity must be less than stock')
+        raise NotAcceptable('product size not exist')
+

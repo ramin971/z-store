@@ -190,13 +190,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'auth_app.User'
 
+# djoser just used for user endpoint not for authenticate
 # require for custom-user ----------------------
-# DJOSER = {
-#     'SERIALIZERS': {
-#         'user_create': 'auth_app.serializers.UserCreateSerializer',
-#         'user': 'auth_app.serializers.UserSerializer',
-#         'current_user': 'auth_app.serializers.UserSerializer'
-#     }
-# }
+DJOSER = {
+    'SERIALIZERS': {
+        'user_create': 'auth_app.serializers.UserCreateSerializer',
+        'user': 'auth_app.serializers.UserSerializer',
+        'current_user': 'auth_app.serializers.UserSerializer'
+    }
+}
 
 # MAX_NESTED_LEVEL_COMMENT = 2

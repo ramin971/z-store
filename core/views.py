@@ -15,9 +15,9 @@ from .serializers import CategorySerializer,TagSerializer,SizeSerializer\
                         ,CommentSerializer,SimpleCommentSerializer,ProductImageSerializer\
                         ,SimpleProductSerializer,DetailProductSerializer,ReactionSerializer\
                         ,SimpleCategorySerializer,CouponSerializer,CustomerSerializer\
-                        ,OrderItemSerializer,CartSerializer,CartProductSerializer
+                        ,OrderItemSerializer,DetailOrderItemSerializer,CartSerializer,CartProductSerializer
                         
-from django.db.models import Avg,Count,Case,When,IntegerField,Q,Max
+from django.db.models import Avg,Count,Case,When,IntegerField,Q,Max,Sum
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.shortcuts import get_object_or_404
@@ -51,7 +51,8 @@ class SizeViewSet(viewsets.ModelViewSet):
 
     
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.prefetch_related('sizes','tags','images').select_related('category','description').annotate(avg_rate=Avg('rates__rate'))
+    queryset = Product.objects.prefetch_related('sizes','tags','images').select_related('category','description')\
+                            .annotate(avg_rate=Avg('rates__rate'),stock=Sum('sizes__stock'))
     pagination_class = CustomPagination
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend,SearchFilter,OrderingFilter]
@@ -72,19 +73,19 @@ class ProductViewSet(viewsets.ModelViewSet):
     @method_decorator(cache_page(3600*24))
     def list(self, request, *args, **kwargs):
         max_price=self.queryset.aggregate(max_price=Max('price'))['max_price']
-        category = Category.objects.only('name','id')
-        category_serializer = SimpleCategorySerializer(category,many=True)
-        category_items = category_serializer.data
-        size = Size.objects.all()
-        size_serializer = SizeSerializer(size,many=True)
-        size_items = size_serializer.data
-        tag = Tag.objects.all()
-        tag_serializer = TagSerializer(tag,many=True)
-        tag_items = tag_serializer.data
+        # category = Category.objects.only('name','id')
+        # category_serializer = SimpleCategorySerializer(category,many=True)
+        # category_items = category_serializer.data
+        category_items = Category.objects.values_list('name',flat=True)
+        size_items = Size.objects.values_list('value',flat=True).distinct()
+        # size_serializer = SizeSerializer(size,many=True)
+        # size_items = size_serializer.data
+
+        tag_items = Tag.objects.values_list('value',flat=True)
         # items = self.queryset.values('category_id','category__name').distinct()
         filters = [
         {
-            "name": "category__id",
+            "name": "category",
             "type": "list",
             "faName": "دسته بندی",
             "items": category_items
@@ -99,13 +100,13 @@ class ProductViewSet(viewsets.ModelViewSet):
                 ],
         },
         {
-            "name": "sizes__id",
+            "name": "sizes",
             "type": "select",
             "faName": "سایز",
             "items": size_items
         },
         {
-            "name": "tags__id",
+            "name": "tags",
             "type": "select",
             "faName": "تگ",
             "items": tag_items
@@ -252,11 +253,20 @@ class CustomerViewSet(viewsets.ModelViewSet):
 
 
 class OrderItemViewSet(viewsets.ModelViewSet):
-    queryset = OrderItem.objects.select_related('product','customer','cart')
+    # queryset = OrderItem.objects.select_related('product','user','size','cart')
     serializer_class = OrderItemSerializer
     permission_classes = [IsAuthenticated]
-    # def get_queryset(self):
-    #     return OrderItem.objects.select_related('product','customer','cart').filter(customer=self.request.user.customer)
+    def get_queryset(self):
+        cart = Cart.objects.filter(payment=False,user=self.request.user).first()
+        user = self.request.user
+        # cart=user.carts.filter(payment=False).first()
+        return OrderItem.objects.select_related('product','user','size','cart').filter(user=user,cart=cart)
+    
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return OrderItemSerializer
+        else:
+            return DetailOrderItemSerializer
     def get_serializer_context(self):
         return {'user':self.request.user}
     
@@ -264,7 +274,8 @@ class CartViewSet(viewsets.ModelViewSet):
     serializer_class = CartSerializer
     permission_classes = [IsAuthenticated]
     def get_queryset(self):
-        return Cart.objects.filter(customer=self.request.user.id).prefetch_related('order_items__product','order_items__product__images','order_items__product__sizes')
+        return Cart.objects.filter(user=self.request.user).prefetch_related('order_items__product','order_items__product__images','order_items__size')\
+                .select_related('user')
     def get_serializer_context(self):
         return {'user':self.request.user,'request':self.request}
     
