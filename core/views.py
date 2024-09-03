@@ -15,7 +15,8 @@ from .serializers import CategorySerializer,TagSerializer,SizeSerializer\
                         ,CommentSerializer,SimpleCommentSerializer,ProductImageSerializer\
                         ,SimpleProductSerializer,DetailProductSerializer,ReactionSerializer\
                         ,SimpleCategorySerializer,CouponSerializer,CustomerSerializer\
-                        ,OrderItemSerializer,DetailOrderItemSerializer,CartSerializer,CartProductSerializer
+                        ,OrderItemSerializer,OrderItemDetailSerializer,CartSerializer\
+                        ,CartProductSerializer,CartDetailSerializer
                         
 from django.db.models import Avg,Count,Case,When,IntegerField,Q,Max,Sum
 from django.utils.decorators import method_decorator
@@ -266,16 +267,23 @@ class OrderItemViewSet(viewsets.ModelViewSet):
         if self.action == 'create':
             return OrderItemSerializer
         else:
-            return DetailOrderItemSerializer
+            return OrderItemDetailSerializer
     def get_serializer_context(self):
         return {'user':self.request.user}
     
 class CartViewSet(viewsets.ModelViewSet):
-    serializer_class = CartSerializer
+    # serializer_class = CartSerializer
     permission_classes = [IsAuthenticated]
     def get_queryset(self):
         return Cart.objects.filter(user=self.request.user).prefetch_related('order_items__product','order_items__product__images','order_items__size')\
                 .select_related('user')
+    
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return CartSerializer
+        else:
+            return CartDetailSerializer
+        # return super().get_serializer_class()
     def get_serializer_context(self):
         return {'user':self.request.user,'request':self.request}
     

@@ -3,6 +3,7 @@ from .models import Category,Tag,Description,Size,Product,ProductImage,Rating,\
                 Comment,Reaction,Coupon,Cart,OrderItem,Customer
 from django.conf import settings
 from auth_app.models import User
+from django.shortcuts import get_object_or_404
 from django.db.models import Sum
 
 class SimpleUserSerializer(serializers.ModelSerializer):
@@ -287,7 +288,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
             # print('2')
             return super().create(validated_data)
 
-class DetailOrderItemSerializer(serializers.ModelSerializer):
+class OrderItemDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = ['id','user','product','size','quantity','cart','get_total_product_price']
@@ -331,3 +332,15 @@ class CartSerializer(serializers.ModelSerializer):
             attrs['customer'] = customer
         return super().validate(attrs)
 
+class CartDetailSerializer(CartSerializer):
+    coupon_code = serializers.CharField(max_length=25,write_only=True,allow_blank=True)
+    class Meta(CartSerializer.Meta):
+        fields = ['id','ordered_date','payment','coupon_code','user','customer','order_items','coupon','get_total_price','status']
+        read_only_fields = ['id','ordered_date','user','payment','coupon','status','get_total_price']
+
+    def update(self, instance, validated_data):
+        if 'coupon_code' in validated_data:
+            coupon_code = validated_data.pop('coupon_code')
+            coupon = get_object_or_404(Coupon,code=coupon_code)
+            instance.coupon = coupon
+        return super().update(instance, validated_data)
