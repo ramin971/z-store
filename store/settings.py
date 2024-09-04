@@ -200,4 +200,5 @@ DJOSER = {
     }
 }
 
+COOKIE_MAX_AGE = 3600 * 24 * 1 # 1 days
 # MAX_NESTED_LEVEL_COMMENT = 2

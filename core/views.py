@@ -14,9 +14,9 @@ from .serializers import CategorySerializer,TagSerializer,SizeSerializer\
                         ,DescriptionSerializer,ProductSerialzier,RatingSerializer\
                         ,CommentSerializer,SimpleCommentSerializer,ProductImageSerializer\
                         ,SimpleProductSerializer,DetailProductSerializer,ReactionSerializer\
-                        ,SimpleCategorySerializer,CouponSerializer,CustomerSerializer\
+                        ,CouponSerializer,CustomerSerializer,CartDetailSerializer\
                         ,OrderItemSerializer,OrderItemDetailSerializer,CartSerializer\
-                        ,CartProductSerializer,CartDetailSerializer
+                        
                         
 from django.db.models import Avg,Count,Case,When,IntegerField,Q,Max,Sum
 from django.utils.decorators import method_decorator

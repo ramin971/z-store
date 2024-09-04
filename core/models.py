@@ -166,9 +166,9 @@ class Cart(models.Model):
         total = 0
         for order_item in self.order_items.all():
             total += order_item.get_total_product_price()
-            if self.coupon:
-                # total = total - (self.coupon.amount * total // 100) if you want percent coupon
-                total = total - self.coupon.amount 
+        if self.coupon:
+            # total = total - (self.coupon.amount * total // 100) if you want percent coupon
+            total = total - self.coupon.amount 
 
         return total
 

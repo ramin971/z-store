@@ -4,7 +4,7 @@ from .models import Category,Tag,Description,Size,Product,ProductImage,Rating,\
 from django.conf import settings
 from auth_app.models import User
 from django.shortcuts import get_object_or_404
-from django.db.models import Sum
+# from django.db.models import Sum
 
 class SimpleUserSerializer(serializers.ModelSerializer):
     class Meta:
