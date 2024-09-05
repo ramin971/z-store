@@ -4,6 +4,7 @@ from .models import Category,Tag,Description,Size,Product,ProductImage,Rating,\
 from django.conf import settings
 from auth_app.models import User
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
 # from django.db.models import Sum
 
 class SimpleUserSerializer(serializers.ModelSerializer):
@@ -319,9 +320,11 @@ class SimpleOrderItemSerializer(serializers.ModelSerializer):
 
 class CartSerializer(serializers.ModelSerializer):
     order_items= SimpleOrderItemSerializer(many=True,read_only=True)
+    coupon_code = serializers.CharField(max_length=25,write_only=True,allow_blank=True)
+
     class Meta:
         model = Cart
-        fields =['id','ordered_date','payment','user','customer','order_items','coupon','get_total_price','status']
+        fields =['id','ordered_date','payment','user','customer','coupon_code','order_items','coupon','get_total_price','status']
         read_only_fields = ['id','ordered_date','user','payment','status','coupon','get_total_price']
 
     def validate(self, attrs):
@@ -331,16 +334,26 @@ class CartSerializer(serializers.ModelSerializer):
             customer = user.customer
             attrs['customer'] = customer
         return super().validate(attrs)
-
-class CartDetailSerializer(CartSerializer):
-    coupon_code = serializers.CharField(max_length=25,write_only=True,allow_blank=True)
-    class Meta(CartSerializer.Meta):
-        fields = ['id','ordered_date','payment','coupon_code','user','customer','order_items','coupon','get_total_price','status']
-        read_only_fields = ['id','ordered_date','user','payment','coupon','status','get_total_price']
-
+    
     def update(self, instance, validated_data):
         if 'coupon_code' in validated_data:
             coupon_code = validated_data.pop('coupon_code')
             coupon = get_object_or_404(Coupon,code=coupon_code)
             instance.coupon = coupon
         return super().update(instance, validated_data)
+
+class CartDetailSerializer(CartSerializer):
+    # coupon_code = serializers.CharField(max_length=25,write_only=True,allow_blank=True)
+    customer = CustomerSerializer(read_only=True)
+    redirect_url = serializers.SerializerMethodField(read_only=True)
+    class Meta(CartSerializer.Meta):
+        fields = ['id','ordered_date','payment','user','customer','order_items','coupon','get_total_price','status','redirect_url']
+        read_only_fields = ['id','ordered_date','user','payment','coupon','status','get_total_price']
+
+    def get_redirect_url(self,instance):
+        if instance.payment:
+            return 'has been paid'
+        redirect_url = reverse('go-to-gateway',kwargs={'price':instance.get_total_price(),'mobile':instance.customer.mobile,'id':instance.id})
+        return redirect_url
+        
+        
