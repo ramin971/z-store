@@ -2,6 +2,9 @@ import logging
 from django.http import HttpResponse, Http404
 from django.urls import reverse
 from django.shortcuts import render,get_object_or_404,redirect
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 from azbankgateways import (
     bankfactories,
     models as bank_models,
@@ -9,6 +12,7 @@ from azbankgateways import (
 )
 from azbankgateways.exceptions import AZBankGatewaysException
 from core.models import Cart,Size
+from core.serializers import CartSerializer
 import uuid
 
 def go_to_gateway_view(request):
@@ -86,7 +90,7 @@ def callback_gateway_view(request):
             size = get_object_or_404(Size,id=order.size)
             size.stock = size.stock - order.quantity
             size.save()
-            
+
         # پرداخت با موفقیت انجام پذیرفته است و بانک تایید کرده است.
         # می توانید کاربر را به صفحه نتیجه هدایت کنید یا نتیجه را نمایش دهید.
         # return HttpResponse("پرداخت با موفقیت انجام شد.")
@@ -99,7 +103,14 @@ def callback_gateway_view(request):
 
 
 
+@api_view(['GET'])
+def receipt(request,*args,**kwargs):
+    cart = get_object_or_404(Cart,id=kwargs['cart_id'])
+    serializer = CartSerializer(cart)
+    response = serializer.data
+    response['tracking_code'] = kwargs['tc']
 
+    return Response(response,status=status.HTTP_200_OK)
 
 
 

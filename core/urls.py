@@ -3,7 +3,6 @@ from rest_framework.routers import DefaultRouter
 from .views import CategoryViewSet,TagViewSet,DescriptionViewSet,SizeViewSet\
                     ,ProductViewSet,RatingProduct,CommentViewSet,ReactionViewSet\
                     ,CouponViewSet,CustomerViewSet,OrderItemViewSet,CartViewSet\
-                    ,receipt
 
 from drf_spectacular.views import SpectacularAPIView,SpectacularRedocView\
                                 ,SpectacularSwaggerView
@@ -32,7 +31,6 @@ router.register(r'cart',CartViewSet,basename='cart')
 urlpatterns = [
     path('auth/', include('auth_app.urls')),
     path('',include(router.urls)),
-    path('receipt/<str:tc>/<uuid:cart_id>',receipt,name='receipt'),
     
     # swagger
     path('schema/', SpectacularAPIView.as_view(), name='schema'),

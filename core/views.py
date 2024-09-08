@@ -2,7 +2,7 @@ from rest_framework import viewsets,mixins,generics,status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly,IsAuthenticated,IsAdminUser
 from rest_framework.exceptions import ParseError
-from rest_framework.decorators import action,api_view
+from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter,OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from .permissions import IsAdminOrIsAuthenticated
@@ -288,11 +288,3 @@ class CartViewSet(viewsets.ModelViewSet):
         return {'user':self.request.user,'request':self.request}
     
 
-@api_view(['GET'])
-def receipt(request,*args,**kwargs):
-    cart = get_object_or_404(Cart,id=kwargs['cart_id'])
-    serializer = CartSerializer(cart)
-    response = serializer.data
-    response['tracking_code'] = kwargs['tc']
-
-    return Response(response,status=status.HTTP_200_OK)
