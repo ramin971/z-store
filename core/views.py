@@ -291,9 +291,6 @@ class CartViewSet(viewsets.ModelViewSet):
 @api_view(['GET'])
 def receipt(request,*args,**kwargs):
     cart = get_object_or_404(Cart,id=kwargs['cart_id'])
-    cart.payment = True
-    # cart.tracking_code = kwargs['tc']
-    cart.save()
     serializer = CartSerializer(cart)
     response = serializer.data
     response['tracking_code'] = kwargs['tc']

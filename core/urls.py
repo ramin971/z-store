@@ -32,7 +32,7 @@ router.register(r'cart',CartViewSet,basename='cart')
 urlpatterns = [
     path('auth/', include('auth_app.urls')),
     path('',include(router.urls)),
-    path('receipt/',receipt,name='receipt'),
+    path('receipt/<str:tc>/<uuid:cart_id>',receipt,name='receipt'),
     
     # swagger
     path('schema/', SpectacularAPIView.as_view(), name='schema'),

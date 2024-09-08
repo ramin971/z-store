@@ -353,7 +353,14 @@ class CartDetailSerializer(CartSerializer):
     def get_redirect_url(self,instance):
         if instance.payment:
             return 'has been paid'
-        redirect_url = reverse('go-to-gateway',kwargs={'price':instance.get_total_price(),'mobile':instance.customer.mobile,'id':instance.id})
+        # redirect_url = reverse('go-to-gateway',kwargs={'price':instance.get_total_price(),'mobile':instance.customer.mobile,'id':instance.id})
+        redirect_url = reverse('go-to-gateway')
+        request = self.context.get('request')
+        request.session['price'] = instance.get_total_price()
+        request.session['mobile'] = instance.customer.mobile
+        print('oooooooooooooooooooooooooooooooooooooOOOOOOOOOOOOOOOOOOoooooooo')
+        request.session['id'] = str(instance.id)
+
         return redirect_url
         
         
