@@ -273,6 +273,10 @@ class OrderItemSerializer(serializers.ModelSerializer):
         user = self.context.get('user')
         attrs['user'] = user
         cart,created = Cart.objects.get_or_create(user=user,payment=False)
+        if cart.customer is None:
+            customer = user.customer
+            cart.customer = customer
+            cart.save()
         # print('$$$$$$$$$$$$$$created cart?',created)
         attrs['cart']=cart
         return super().validate(attrs)
@@ -311,6 +315,8 @@ class CartProductSerializer(SimpleProductSerializer):
    
 class SimpleOrderItemSerializer(serializers.ModelSerializer):
     product = CartProductSerializer(read_only=True)
+    size = SizeSerializer(read_only=True)
+    # size = serializers.StringRelatedField()
     class Meta:
         model = OrderItem
         fields = ['id','user','product','size','quantity','get_total_product_price']
@@ -354,7 +360,7 @@ class CartDetailSerializer(CartSerializer):
         if instance.payment:
             return 'has been paid'
         # redirect_url = reverse('go-to-gateway',kwargs={'price':instance.get_total_price(),'mobile':instance.customer.mobile,'id':instance.id})
-        redirect_url = reverse('go-to-gateway')
+        redirect_url = reverse('payment_start')
         request = self.context.get('request')
         request.session['price'] = instance.get_total_price()
         request.session['mobile'] = instance.customer.mobile

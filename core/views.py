@@ -273,6 +273,7 @@ class OrderItemViewSet(viewsets.ModelViewSet):
     
 class CartViewSet(viewsets.ModelViewSet):
     # serializer_class = CartSerializer
+    pagination_class = CustomPagination
     permission_classes = [IsAuthenticated]
     def get_queryset(self):
         return Cart.objects.filter(user=self.request.user).prefetch_related('order_items__product','order_items__product__images','order_items__size')\

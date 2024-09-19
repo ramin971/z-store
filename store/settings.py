@@ -168,9 +168,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-# TIME_ZONE = 'Asia/Tehran'
+# 
+# TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Tehran'
 
 USE_I18N = True
 
@@ -270,21 +270,22 @@ AZ_IRANIAN_BANK_GATEWAYS = {
     #        'TERMINAL_CODE': '<YOUR TERMINAL CODE>',
     #    },
        'ZARINPAL': {
-           'MERCHANT_CODE': '<YOUR MERCHANT CODE>',
+           'MERCHANT_CODE': 'aby4ird8ovy9kfy1vkp7ojfyasjv45otjbmf',
            'SANDBOX': 1,  # 0 disable, 1 active
        },
        'IDPAY': {
-           'MERCHANT_CODE': '<YOUR MERCHANT CODE>',
+        #    'MERCHANT_CODE': '6a7f99eb-7c20-4412-a972-6dfb7cd253a4',
+           'X-API-KEY': '6a7f99eb-7c20-4412-a972-6dfb7cd253a4',
            'METHOD': 'POST',  # GET or POST
-           'X_SANDBOX': 1,  # 0 disable, 1 active
+           'X-SANDBOX': 1,  # 0 disable, 1 active
        },
        'PAYV1': {
            'MERCHANT_CODE': 'test',
            'X_SANDBOX': 1,  # 0 disable, 1 active
        },
-    #    'ZIBAL': {
-    #        'MERCHANT_CODE': '<YOUR MERCHANT CODE>',
-    #    },
+       'ZIBAL': {
+           'MERCHANT_CODE': 'zibal',
+       },
     #    'BAHAMTA': {
     #        'MERCHANT_CODE': '<YOUR MERCHANT CODE>',
     #    },
@@ -296,16 +297,19 @@ AZ_IRANIAN_BANK_GATEWAYS = {
      
    },
    'IS_SAMPLE_FORM_ENABLE': True, # اختیاری و پیش فرض غیر فعال است
-   'DEFAULT': 'PAYV1',
+   'DEFAULT': 'IDPAY',
    'CURRENCY': 'IRR', # اختیاری
    'TRACKING_CODE_QUERY_PARAM': 'tc', # اختیاری
    'TRACKING_CODE_LENGTH': 16, # اختیاری
    'SETTING_VALUE_READER_CLASS': 'azbankgateways.readers.DefaultReader', # اختیاری
    'BANK_PRIORITIES': [
-       'PAYV1',
-       'ZARINPAL',
-       'IDPAY'
+    #    'ZIBAL',
+       'IDPAY',
+    #    'PAYV1',
+    #    'ZARINPAL',
    ], # اختیاری
    'IS_SAFE_GET_GATEWAY_PAYMENT': False, #اختیاری، بهتر است True بزارید.
    'CUSTOM_APP': None, # اختیاری 
 }
+# SECURE_SSL_REDIRECT = True
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
