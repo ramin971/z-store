@@ -47,7 +47,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'drf_spectacular',
     'drf_spectacular_sidecar',
-    'azbankgateways',
     # my app
     'auth_app',
     'core',
@@ -204,112 +203,5 @@ DJOSER = {
 COOKIE_MAX_AGE = 3600 * 24 * 1 # 1 days
 # MAX_NESTED_LEVEL_COMMENT = 2
 
-# AZ_IRANIAN_BANK_GATEWAYS = {
-#    'GATEWAYS': {
-#     #    'BMI': {
-#     #        'MERCHANT_CODE': '<YOUR MERCHANT CODE>',
-#     #        'TERMINAL_CODE': '<YOUR TERMINAL CODE>',
-#     #        'SECRET_KEY': '<YOUR SECRET CODE>',
-#     #    },
-#     #    'SEP': {
-#     #        'MERCHANT_CODE': '<YOUR MERCHANT CODE>',
-#     #        'TERMINAL_CODE': '<YOUR TERMINAL CODE>',
-#     #    },
-#        'ZARINPAL': {
-#            'MERCHANT_CODE': '<YOUR MERCHANT CODE>',
-#            'SANDBOX': 1,  # 0 disable, 1 active
-#        },
-#        'IDPAY': {
-#            'MERCHANT_CODE': '<YOUR MERCHANT CODE>',
-#            'METHOD': 'POST',  # GET or POST
-#            'X_SANDBOX': 1,  # 0 disable, 1 active
-#        },
-#        'PAYV1': {
-#            'MERCHANT_CODE': 'test',
-#            'X_SANDBOX': 1,  # 0 disable, 1 active
-#        },
-#     #    'ZIBAL': {
-#     #        'MERCHANT_CODE': '<YOUR MERCHANT CODE>',
-#     #    },
-#     #    'BAHAMTA': {
-#     #        'MERCHANT_CODE': '<YOUR MERCHANT CODE>',
-#     #    },
-#     #    'MELLAT': {
-#     #        'TERMINAL_CODE': '<YOUR TERMINAL CODE>',
-#     #        'USERNAME': '<YOUR USERNAME>',
-#     #        'PASSWORD': '<YOUR PASSWORD>',
-#     #    },
-     
-#    },
-#    'IS_SAMPLE_FORM_ENABLE': True, # اختیاری و پیش فرض غیر فعال است
-#    'DEFAULT': 'ZARINPAL',
-#    'CURRENCY': 'IRR', # اختیاری
-#    'TRACKING_CODE_QUERY_PARAM': 'tc', # اختیاری
-#    'TRACKING_CODE_LENGTH': 16, # اختیاری
-#    'SETTING_VALUE_READER_CLASS': 'azbankgateways.readers.DefaultReader', # اختیاری
-#    'BANK_PRIORITIES': [
-#        'ZARINPAL',
-#        'IDPAY',
-#        'PAYV1',
-
-#    ], # اختیاری
-#    'IS_SAFE_GET_GATEWAY_PAYMENT': False, #اختیاری، بهتر است True بزارید.
-#    'CUSTOM_APP': None, # اختیاری 
-# }
-
-
-AZ_IRANIAN_BANK_GATEWAYS = {
-   'GATEWAYS': {
-    #    'BMI': {
-    #        'MERCHANT_CODE': '<YOUR MERCHANT CODE>',
-    #        'TERMINAL_CODE': '<YOUR TERMINAL CODE>',
-    #        'SECRET_KEY': '<YOUR SECRET CODE>',
-    #    },
-    #    'SEP': {
-    #        'MERCHANT_CODE': '<YOUR MERCHANT CODE>',
-    #        'TERMINAL_CODE': '<YOUR TERMINAL CODE>',
-    #    },
-       'ZARINPAL': {
-           'MERCHANT_CODE': 'aby4ird8ovy9kfy1vkp7ojfyasjv45otjbmf',
-           'SANDBOX': 1,  # 0 disable, 1 active
-       },
-       'IDPAY': {
-        #    'MERCHANT_CODE': '6a7f99eb-7c20-4412-a972-6dfb7cd253a4',
-           'X-API-KEY': '6a7f99eb-7c20-4412-a972-6dfb7cd253a4',
-           'METHOD': 'POST',  # GET or POST
-           'X-SANDBOX': 1,  # 0 disable, 1 active
-       },
-       'PAYV1': {
-           'MERCHANT_CODE': 'test',
-           'X_SANDBOX': 1,  # 0 disable, 1 active
-       },
-       'ZIBAL': {
-           'MERCHANT_CODE': 'zibal',
-       },
-    #    'BAHAMTA': {
-    #        'MERCHANT_CODE': '<YOUR MERCHANT CODE>',
-    #    },
-    #    'MELLAT': {
-    #        'TERMINAL_CODE': '<YOUR TERMINAL CODE>',
-    #        'USERNAME': '<YOUR USERNAME>',
-    #        'PASSWORD': '<YOUR PASSWORD>',
-    #    },
-     
-   },
-   'IS_SAMPLE_FORM_ENABLE': True, # اختیاری و پیش فرض غیر فعال است
-   'DEFAULT': 'IDPAY',
-   'CURRENCY': 'IRR', # اختیاری
-   'TRACKING_CODE_QUERY_PARAM': 'tc', # اختیاری
-   'TRACKING_CODE_LENGTH': 16, # اختیاری
-   'SETTING_VALUE_READER_CLASS': 'azbankgateways.readers.DefaultReader', # اختیاری
-   'BANK_PRIORITIES': [
-    #    'ZIBAL',
-       'IDPAY',
-    #    'PAYV1',
-    #    'ZARINPAL',
-   ], # اختیاری
-   'IS_SAFE_GET_GATEWAY_PAYMENT': False, #اختیاری، بهتر است True بزارید.
-   'CUSTOM_APP': None, # اختیاری 
-}
 # SECURE_SSL_REDIRECT = True
 # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
