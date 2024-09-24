@@ -1,4 +1,4 @@
-from rest_framework import viewsets,mixins,generics,status
+from rest_framework import viewsets,mixins,status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly,IsAuthenticated,IsAdminUser
 from rest_framework.exceptions import ParseError
