@@ -26,6 +26,9 @@ services:
     env_file:
       - ./.env.dev
 
+  redis:
+    image: redis:alpine
+
   nginx:
     build: ./nginx
     volumes:
