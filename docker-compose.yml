@@ -1,0 +1,41 @@
+version: '3.10'
+
+
+services:
+
+  web:
+    build:
+      context: .
+    command: gunicorn store.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - static_data:/home/app/web/static
+      - media_data:/home/app/web/media
+    expose:
+      - 8000
+    restart: always
+    env_file:
+      - ./.env.dev
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15-alpine
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data:rw
+    env_file:
+      - ./.env.dev
+
+  nginx:
+    build: ./nginx
+    volumes:
+      - static_data:/home/app/web/static
+      - media_data:/home/app/web/media
+    ports:
+      - "8000:80"
+    depends_on:
+      - web
+volumes:
+  static_data:
+  media_data:
+  postgres_data:

@@ -1,0 +1,59 @@
+*.pyc
+*.pyo
+*.mo
+*.db
+*.css.map
+*.egg-info
+*.sql.gz
+.cache
+.project
+.idea
+.pydevproject
+.idea/workspace.xml
+.DS_Store
+.git/
+.gitignore
+.sass-cache
+.vagrant/
+__pycache__
+dist
+docs
+
+# Environments
+# .env.dev
+.env
+.venv
+env/
+media/
+__pycache__/
+venv/
+ENV/
+env.bak/
+venv.bak/
+env
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+static
+
+
+logs
+# src/{{ project_name }}/settings/local.py
+# src/node_modules
+web/media
+web/static/CACHE
+stats
+/media
+Dockerfile
+README.md
+docker-compose.yml
+.ssh
+
+# VS Code
+.vscode
+
+
+
