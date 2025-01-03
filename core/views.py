@@ -174,14 +174,17 @@ class CommentViewSet(viewsets.ModelViewSet):
                     # mixins.UpdateModelMixin,
                     # mixins.DestroyModelMixin,
                     # viewsets.GenericViewSet):
-    queryset = Comment.objects.select_related('user')\
-        .annotate(likes=Count('reactions',filter=Q(reactions__reaction_type='L')),
-                  dislikes=Count('reactions',filter=Q(reactions__reaction_type='D'))).order_by('-id')
+    # queryset = Comment.objects.select_related('user')\
+    #     .annotate(likes=Count('reactions',filter=Q(reactions__reaction_type='L')),
+    #               dislikes=Count('reactions',filter=Q(reactions__reaction_type='D'))).order_by('-id')
     # SAME........
     # queryset = Comment.objects.all().select_related('user')\
     #     .annotate(likes=Count(Case(When(reactions__reaction_type='L', then=1),output_field=IntegerField(),)),\
     #                 dislikes=Count(Case(When(reactions__reaction_type='D', then=1),output_field=IntegerField(),)))
-
+    def get_queryset(self):
+        return Comment.objects.filter(product_id=self.kwargs['product_pk']).select_related('user')\
+        .annotate(likes=Count('reactions',filter=Q(reactions__reaction_type='L')),
+                  dislikes=Count('reactions',filter=Q(reactions__reaction_type='D'))).order_by('-id')
 
     pagination_class = CustomPagination
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -193,7 +196,7 @@ class CommentViewSet(viewsets.ModelViewSet):
             return CommentSerializer
 
     def get_serializer_context(self):
-        return {'user':self.request.user}
+        return {'user':self.request.user , 'product_id':self.kwargs['product_pk']}
     
 
 

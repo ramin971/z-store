@@ -175,18 +175,21 @@ class ReactionSerializer(serializers.ModelSerializer):
 class SimpleCommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
-        fields = ['id','user','text','product']
+        fields = ['id','user','text']
         read_only_fields = ['id','user']
 
     def validate(self, attrs):
         user = self.context.get('user')
+        product = self.context.get('product_id')
         attrs['user'] = user
+        attrs['product_id'] = product
         return super().validate(attrs)
 
     # def create(self, validated_data):
     #     user = self.context.get('user')
     #     validated_data['user'] = user
     #     return super().create(validated_data)
+    
 
 
 
