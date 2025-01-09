@@ -278,6 +278,8 @@ class OrderItemSerializer(serializers.ModelSerializer):
         cart,created = Cart.objects.get_or_create(user=user,payment=False)
         if cart.customer is None:
             customer = user.customer
+            if customer is None:
+                raise serializers.ValidationError({'message':'user customer or cart customer is not set'})
             cart.customer = customer
             cart.save()
         # print('$$$$$$$$$$$$$$created cart?',created)
