@@ -165,6 +165,7 @@ def payment_init():
     # api_key = config('IDPAY_API_KEY', default='', cast=str)
     # sandbox = config('IDPAY_SANDBOX', default=True, cast=bool)
     base_url = 'http://127.0.0.1:8000'
+    # base_url = 'https://your-domain.com'
     api_key = '6a7f99eb-7c20-4412-a972-6dfb7cd253a4'
     sandbox = 1
     return IDPayAPI(api_key, base_url, sandbox)
